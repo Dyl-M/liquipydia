@@ -29,6 +29,14 @@ liquipydia/
 └── py.typed        # PEP 561 type marker
 ```
 
+## API Access
+
+Using this library requires an API key from Liquipedia. Access is **not self-service** — you must request it through
+their [contact form](https://liquipedia.net/api).
+
+Free access is available for **educational**, **non-commercial open-source**, and **community** projects.
+Paid plans (Basic, Premium, Enterprise) are available for commercial use.
+
 ## Installation
 
 > **Note:** Not yet published on PyPI. Install from source for now.
@@ -76,7 +84,7 @@ Code is licensed under the [MIT License](LICENSE).
 
 Data returned by the Liquipedia API is subject to
 [CC-BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) as required by Liquipedia's
-[Terms of Use](https://liquipedia.net/commons/Liquipedia:Terms_of_Use). If you redistribute or display data obtained
+[API Terms of Use](https://liquipedia.net/api-terms-of-use). If you redistribute or display data obtained
 through this library, you must comply with the CC-BY-SA 3.0 attribution requirements.
 
 ## Contributing

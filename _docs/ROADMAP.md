@@ -98,8 +98,7 @@ First PyPI release covering the full LPDB v3 surface.
 ## Future / Out of scope for v1
 
 - Async support (`AsyncLiquipediaClient` wrapping `httpx.AsyncClient`, async resource classes, `pytest-asyncio`)
-- MediaWiki API support (wikitext/page queries) — separate scope, lower priority
 - Query builder / fluent interface (`client.query("match").where(...).select(...)`) — evaluate after v1 based on usage
 - Response caching layer (local TTL cache)
 - CLI tool for quick queries
-- Webhook/streaming support (if Liquipedia ever adds it)
+- Webhook support (subscribe to `edit`, `delete`, `move`, `purge` page events)
