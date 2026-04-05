@@ -77,7 +77,8 @@ class TestConstructor:
         request = respx.calls.last.request
         assert "gzip" in request.headers["Accept-Encoding"]
 
-    def test_api_key_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    @staticmethod
+    def test_api_key_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify API key falls back to LIQUIPEDIA_API_KEY env var."""
         monkeypatch.setenv("LIQUIPEDIA_API_KEY", "env-key")
 
@@ -92,13 +93,15 @@ class TestConstructor:
 class TestContextManager:
     """Tests for context manager protocol."""
 
-    def test_enter_returns_self(self) -> None:
+    @staticmethod
+    def test_enter_returns_self() -> None:
         """Verify __enter__ returns the client instance."""
         client = _make_client()
         assert client.__enter__() is client
         client.close()
 
-    def test_exit_closes_client(self) -> None:
+    @staticmethod
+    def test_exit_closes_client() -> None:
         """Verify __exit__ closes the HTTP session."""
         client = _make_client()
 
