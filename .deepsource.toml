@@ -9,9 +9,6 @@ name = "python"
 runtime_version = "3.x.x"
 max_line_length = 120
 
-[analyzers.exclude_patterns]
-# __init__.py re-exports are intentional (declared in __all__)
-PY-W2000 = ["**/__init__.py"]
 
 [[analyzers]]
 name = "test-coverage"
