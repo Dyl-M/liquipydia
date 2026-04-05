@@ -30,11 +30,28 @@ fix-abc   ──►     (PR + merge)
 
 ### Merge Strategy
 
-PRs into `main` are **squash-merged** to keep the history clean (one commit per PR). The squash commit message must
-follow [Conventional Commits](https://www.conventionalcommits.org/) format so that semantic release can determine
-version bumps automatically.
+| Target | Allowed merge methods | Notes                                           |
+|--------|-----------------------|-------------------------------------------------|
+| `main` | **Squash only**       | One commit per release, linear history enforced |
+| `dev`  | **Squash or rebase**  | Linear history enforced, no merge commits       |
+
+All commit messages (including squash commits) must follow
+[Conventional Commits](https://www.conventionalcommits.org/) format so that semantic release can determine version bumps
+automatically.
 
 Examples: `feat: add resource layer`, `fix: handle 429 rate limit`, `docs: update contributing guide`.
+
+### Branch Protection
+
+Both `main` and `dev` are protected by rulesets:
+
+- **No direct pushes to `main`** — all changes require a PR
+- **Direct pushes to `dev`** are allowed for repository maintainers only (e.g., changelog updates, quick fixes)
+- **Required status checks** on both branches: `Lint & Format`, `Type Check`, `Tests`
+- **`main` requires checks to be up to date** with the target branch before merging
+- **No force pushes or branch deletion** on either branch
+- **Stale reviews are dismissed** on push to `main`
+- **All review conversations must be resolved** before merging to `main`
 
 ### Branch Naming
 
