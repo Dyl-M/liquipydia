@@ -1,4 +1,4 @@
-# liquipydia
+# `liquipydia` — Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
 
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
@@ -10,11 +10,9 @@
 [![DeepSource](https://app.deepsource.com/gh/Dyl-M/liquipydia.svg/?label=active+issues&show_trend=true&token=TOKEN)](https://app.deepsource.com/gh/Dyl-M/liquipydia/)
 [![DeepSource](https://app.deepsource.com/gh/Dyl-M/liquipydia.svg/?label=code+coverage&show_trend=true&token=TOKEN)](https://app.deepsource.com/gh/Dyl-M/liquipydia/)
 
-Python client library for the [Liquipedia](https://liquipedia.net/) API (LPDB v3).
-
 ## About
 
-**liquipydia** aims to be a modern, typed Python wrapper for the Liquipedia Database (LPDB) REST API v3, covering all
+**`liquipydia`** aims to be a modern, typed Python wrapper for the Liquipedia Database (LPDB) REST API v3, covering all
 16 data types (matches, tournaments, teams, players, transfers, and more).
 
 Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://docs.pydantic.dev/).
