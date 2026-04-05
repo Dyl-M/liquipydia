@@ -9,6 +9,7 @@ name = "python"
 runtime_version = "3.x.x"
 max_line_length = 120
 
+
 [[analyzers]]
 name = "test-coverage"
 enabled = true

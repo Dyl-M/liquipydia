@@ -17,18 +17,18 @@ Set up the project structure, tooling, and CI before writing any library code.
 
 The foundation everything else depends on. Handles transport, auth, compliance with Liquipedia API constraints.
 
-- [ ] `LiquipediaClient` class wrapping `httpx.Client`
-    - Constructor: `app_name` (required), `api_key` (optional, from param or env var)
+- [x] `LiquipediaClient` class wrapping `httpx.Client`
+    - Constructor: `app_name` (required), `api_key` (optional, from param or env var `LIQUIPEDIA_API_KEY`)
     - Custom `User-Agent` header: `{app_name} (via liquipydia/{version})`
     - `Accept-Encoding: gzip` by default
     - Session reuse (single `httpx.Client` instance)
     - Context manager support (`with LiquipediaClient(...) as client:`)
-- [ ] Base URL configuration (`https://api.liquipedia.net/api/v3/`)
-- [ ] Rate limiting (respect Liquipedia ToS — backoff on 429)
-- [ ] Error handling: map HTTP status codes to typed exceptions (`LiquipediaError`, `RateLimitError`, `AuthError`,
-  `NotFoundError`)
-- [ ] Pagination helper (LPDB uses `offset` + `limit`)
-- [ ] Response envelope parsing (extract `result` from API response)
+- [x] Base URL configuration (`https://api.liquipedia.net/api/v3/`)
+- [x] Rate limiting (truncated exponential backoff on 429, respects `Retry-After` header)
+- [x] Error handling: map HTTP status codes to typed exceptions (`LiquipediaError`, `RateLimitError`, `AuthError`,
+  `NotFoundError`, `ApiError`)
+- [x] Pagination helper (`paginate()` generator using `offset` + `limit`)
+- [x] Response envelope parsing (`ApiResponse` dataclass — extracts `result` and `warning` from API response)
 
 ## v0.0.3 — Resource layer (16 data types)
 
