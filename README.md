@@ -23,8 +23,11 @@ Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://doc
 
 ```
 liquipydia/
-├── __init__.py     # Package exports, version
-└── py.typed        # PEP 561 type marker
+├── __init__.py       # Package exports, version
+├── _client.py        # Core HTTP client (LiquipediaClient)
+├── _exceptions.py    # Exception hierarchy
+├── _response.py      # API response wrapper
+└── py.typed          # PEP 561 type marker
 ```
 
 ## API Access
@@ -50,8 +53,20 @@ pip install git+https://github.com/Dyl-M/liquipydia.git
 ## Quick Start
 
 ```python
-# Coming soon — see the Roadmap for progress.
+from liquipydia import LiquipediaClient
+
+with LiquipediaClient("my-app", api_key="your-api-key") as client:
+    # Low-level request (resource helpers coming in v0.0.3)
+    response = client._get("player", {"wiki": "dota2", "limit": 5})
+    for player in response.result:
+        print(player)
+
+    # Automatic pagination
+    for match in client.paginate("match", {"wiki": "counterstrike"}, page_size=100, max_results=500):
+        print(match)
 ```
+
+> The API key can also be set via the `LIQUIPEDIA_API_KEY` environment variable.
 
 ## Development
 
