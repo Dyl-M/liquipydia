@@ -25,6 +25,7 @@ Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://doc
 liquipydia/
 ├── __init__.py       # Package exports, version
 ├── _client.py        # Core HTTP client (LiquipediaClient)
+├── _models.py        # Pydantic models (one per LPDB data type)
 ├── _resources.py     # Resource classes (one per LPDB data type)
 ├── _exceptions.py    # Exception hierarchy
 ├── _response.py      # API response wrapper
@@ -54,17 +55,19 @@ pip install git+https://github.com/Dyl-M/liquipydia.git
 ## Quick Start
 
 ```python
-from liquipydia import LiquipediaClient
+from liquipydia import LiquipediaClient, Player, Match
 
 with LiquipediaClient("my-app", api_key="your-api-key") as client:
     # Query players from a specific wiki
     response = client.players.list("dota2", conditions="[[name::Miracle-]]")
-    for player in response.result:
-        print(player)
+    for record in response.result:
+        player = Player.model_validate(record)
+        print(player.name, player.nationality, player.birthdate)
 
     # Automatic pagination across multiple pages
-    for match in client.matches.paginate("counterstrike", page_size=100, max_results=500):
-        print(match)
+    for record in client.matches.paginate("counterstrike", page_size=100, max_results=500):
+        match = Match.model_validate(record)
+        print(match.match2id, match.date, match.winner)
 
     # Keyword filters — no need to write raw LPDB conditions
     response = client.players.list("rocketleague", pagename="Zen")
@@ -100,6 +103,28 @@ All 16 LPDB v3 data types are accessible as client attributes:
 | `client.team_template_list`   | `/teamtemplatelist`  | Different params (`pagination`)   |
 
 > The API key can also be set via the `LIQUIPEDIA_API_KEY` environment variable.
+
+### Typed Models
+
+Each data type has a corresponding Pydantic model for typed access and IDE autocompletion:
+
+`Broadcaster`, `Company`, `Datapoint`, `ExternalMediaLink`, `Match`, `Placement`, `Player`, `Series`, `SquadPlayer`,
+`StandingsEntry`, `StandingsTable`, `Team`, `TeamTemplate`, `TeamTemplateList`, `Tournament`, `Transfer`
+
+```python
+from liquipydia import Player
+
+player = Player.model_validate(record)
+print(player.name)  # str | None — with autocompletion
+print(player.birthdate)  # date | None — null sentinels auto-converted
+print(player.links)  # dict | None — empty API lists auto-converted
+```
+
+Models handle LPDB quirks automatically:
+
+- Null date sentinels (`"0000-01-01"`, `""`) → `None`
+- Empty dict placeholders (`[]`) → `None`
+- Unknown/future API fields are preserved (`extra="allow"`)
 
 ## Development
 

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-04-06
+
+### Added
+
+- Pydantic models for all 16 LPDB v3 data types in `_models.py`: `Broadcaster`, `Company`, `Datapoint`,
+  `ExternalMediaLink`, `Match`, `Placement`, `Player`, `Series`, `SquadPlayer`, `StandingsEntry`, `StandingsTable`,
+  `Team`, `TeamTemplate`, `TeamTemplateList`, `Tournament`, `Transfer`
+- Private base classes: `_LpdbModel` (common fields for standard endpoints) and `_TeamTemplateBase` (different field set
+  for team template endpoints)
+- Reusable type aliases via `Annotated` + `BeforeValidator`: `NullableDate`, `NullableDatetime`, `LpdbDict` for
+  automatic conversion of LPDB null sentinels and empty dict placeholders
+- Standalone model usage: `Model.model_validate(record)` on dicts from `ApiResponse.result`
+- Typed Models section in README with usage examples and LPDB quirk handling notes
+- Test suite for Pydantic models covering construction, date normalization, model-specific parsing, and exports
+
+### Changed
+
+- Bump version to 0.0.4
+- Re-export all 16 models from `__init__.py` and add to `__all__`
+- Update Quick Start examples in README to demonstrate model validation with typed field access
+- Update roadmap with completed v0.0.4 items and checked off existing test milestones
+- Refactor `dev` dependency group to include `test` group via `include-group` instead of duplicating packages
+
+### Fixed
+
+- Suppress false positive DeepSource warning on `Placement` model
+
 ## [0.0.3] - 2026-04-06
 
 ### Added
@@ -82,8 +109,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downgrade `astral-sh/setup-uv` from v8 to v7 (v8 major tag does not exist)
 - Enforce docstrings in test suite (remove pydocstyle exemption for `_tests/`)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.3...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.4...dev
+
+[0.0.4]: https://github.com/Dyl-M/liquipydia/compare/v0.0.3...v0.0.4
 
 [0.0.3]: https://github.com/Dyl-M/liquipydia/compare/v0.0.2...v0.0.3
+
 [0.0.2]: https://github.com/Dyl-M/liquipydia/compare/v0.0.1...v0.0.2
+
 [0.0.1]: https://github.com/Dyl-M/liquipydia/releases/tag/v0.0.1

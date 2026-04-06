@@ -9,6 +9,24 @@ from liquipydia._exceptions import (  # skipcq: PY-W2000
     NotFoundError,
     RateLimitError,
 )
+from liquipydia._models import (  # skipcq: PY-W2000
+    Broadcaster,
+    Company,
+    Datapoint,
+    ExternalMediaLink,
+    Match,
+    Placement,
+    Player,
+    Series,
+    SquadPlayer,
+    StandingsEntry,
+    StandingsTable,
+    Team,
+    TeamTemplate,
+    TeamTemplateList,
+    Tournament,
+    Transfer,
+)
 from liquipydia._resources import (  # skipcq: PY-W2000
     BroadcastersResource,
     CompaniesResource,
@@ -30,7 +48,7 @@ from liquipydia._resources import (  # skipcq: PY-W2000
 )
 from liquipydia._response import ApiResponse  # skipcq: PY-W2000
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __author__ = "Dylan Monfret"
 
 __all__: list[str] = [
@@ -41,6 +59,23 @@ __all__: list[str] = [
     "LiquipediaClient",
     # Response
     "ApiResponse",
+    # Models
+    "Broadcaster",
+    "Company",
+    "Datapoint",
+    "ExternalMediaLink",
+    "Match",
+    "Placement",
+    "Player",
+    "Series",
+    "SquadPlayer",
+    "StandingsEntry",
+    "StandingsTable",
+    "Team",
+    "TeamTemplate",
+    "TeamTemplateList",
+    "Tournament",
+    "Transfer",
     # Resources
     "BroadcastersResource",
     "CompaniesResource",
