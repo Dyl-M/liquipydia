@@ -91,22 +91,28 @@ def paginate(
 
 Typed response models for IDE autocompletion and validation. One model per data type.
 
-- [ ] One model per data type: `Broadcaster`, `Company`, `Datapoint`, `ExternalMediaLink`, `Match`, `Placement`,
-  `Player`, `Series`, `SquadPlayer`, `StandingsEntry`, `StandingsTable`, `Team`, `Tournament`, `Transfer`,
-  `TeamTemplate`, `TeamTemplateList`
-- [ ] Field mapping from API snake_case JSON → Python attributes
-- [ ] Optional fields handled with `None` defaults
-- [ ] Date/datetime parsing where applicable
-- [ ] Decision: strict validation vs. permissive (`model_config = ConfigDict(extra="allow")`)
-
-> **Note:** This phase depends on the full API field documentation. Models can start with known/common fields and expand
-> later.
+- [x] 16 Pydantic models in `liquipydia/_models.py`: `Broadcaster`, `Company`, `Datapoint`, `ExternalMediaLink`,
+  `Match`, `Placement`, `Player`, `Series`, `SquadPlayer`, `StandingsEntry`, `StandingsTable`, `Team`, `Tournament`,
+  `Transfer`, `TeamTemplate`, `TeamTemplateList`
+- [x] Private base classes: `_LpdbModel` (common fields for standard endpoints) and `_TeamTemplateBase` (different
+  field set for team template endpoints)
+- [x] All fields `type | None = None` — fully optional, forward-compatible
+- [x] `ConfigDict(extra="allow", populate_by_name=True)` — unknown/future API fields preserved
+- [x] Reusable type aliases via `Annotated` + `BeforeValidator`:
+    - `NullableDate` — converts LPDB null sentinels (`"0000-01-01"`, `""`) to `None`
+    - `NullableDatetime` — same for datetime fields (`"0000-01-01 00:00:00"`)
+    - `LpdbDict` — converts empty API lists (`[]`) to `None` for dict-like fields
+- [x] Standalone usage: `Model.model_validate(record)` on dicts from `ApiResponse.result`
+- [x] Field schemas discovered via live API calls (API does not document per-endpoint schemas)
+- [x] All 16 models re-exported from `__init__.py` and listed in `__all__`
+- [x] Test suite in `_tests/test_models.py` covering construction, date normalization, model-specific parsing, and
+  exports
 
 ## v0.0.5 — Tests and documentation
 
-- [ ] Unit tests for client (request building, headers, error handling) using `respx` to mock `httpx`
-- [ ] Unit tests for each resource (parameter construction, response parsing)
-- [ ] Unit tests for Pydantic models (validation, edge cases)
+- [x] Unit tests for client (request building, headers, error handling) using `respx` to mock `httpx`
+- [x] Unit tests for each resource (parameter construction, response parsing)
+- [x] Unit tests for Pydantic models (validation, edge cases)
 - [ ] Integration test suite (opt-in, requires real API key, skipped in CI by default)
 - [ ] `mkdocs-material` documentation site
     - Getting started / quickstart
