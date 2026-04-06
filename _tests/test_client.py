@@ -38,7 +38,7 @@ class TestConstructor:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
         with _make_client(app_name="my-app") as client:
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
         request = respx.calls.last.request
         assert request.headers["User-Agent"] == f"my-app (via liquipydia/{__version__})"
@@ -49,7 +49,7 @@ class TestConstructor:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
         with _make_client(api_key="secret-key") as client:
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
         request = respx.calls.last.request
         assert request.headers["Authorization"] == "Apikey secret-key"
@@ -61,7 +61,7 @@ class TestConstructor:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
         with LiquipediaClient("test-app", api_key=None) as client:
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
         request = respx.calls.last.request
         assert "Authorization" not in request.headers
@@ -72,7 +72,7 @@ class TestConstructor:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
         with _make_client() as client:
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
         request = respx.calls.last.request
         assert "gzip" in request.headers["Accept-Encoding"]
@@ -123,7 +123,7 @@ class TestParseResponse:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
 
         with _make_client() as client:
-            response = client._get("player", {"wiki": "dota2"})
+            response = client.get("player", {"wiki": "dota2"})
 
         assert response.result == [{"name": "Miracle-"}]
 
@@ -138,7 +138,7 @@ class TestParseResponse:
         )
 
         with _make_client() as client:
-            response = client._get("player", {"wiki": "dota2"})
+            response = client.get("player", {"wiki": "dota2"})
 
         assert response.warnings == ["deprecated field"]
 
@@ -150,7 +150,7 @@ class TestParseResponse:
         )
 
         with _make_client() as client, pytest.raises(ApiError, match="unknown wiki"):
-            client._get("player", {"wiki": "badwiki"})
+            client.get("player", {"wiki": "badwiki"})
 
 
 # === HTTP Error Handling ===
@@ -165,7 +165,7 @@ class TestHttpErrors:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(403))
 
         with _make_client() as client, pytest.raises(AuthError):
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
     @respx.mock
     def test_404_raises_not_found_error(self) -> None:
@@ -173,7 +173,7 @@ class TestHttpErrors:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(404))
 
         with _make_client() as client, pytest.raises(NotFoundError):
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
     @respx.mock
     def test_500_raises_liquipedia_error(self) -> None:
@@ -181,7 +181,7 @@ class TestHttpErrors:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(500, text="Internal Server Error"))
 
         with _make_client() as client, pytest.raises(LiquipediaError, match="HTTP 500"):
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
 
 # === Rate Limiting ===
@@ -200,7 +200,7 @@ class TestRateLimiting:
         ]
 
         with _make_client(max_retries=3, retry_backoff_factor=0.0) as client:
-            response = client._get("player", {"wiki": "dota2"})
+            response = client.get("player", {"wiki": "dota2"})
 
         assert response.result == [{"id": 1}]
         assert route.call_count == 2
@@ -211,7 +211,7 @@ class TestRateLimiting:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(429, headers={"Retry-After": "0"}))
 
         with _make_client(max_retries=2, retry_backoff_factor=0.0) as client, pytest.raises(RateLimitError):
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
     @respx.mock
     def test_429_uses_retry_after_header(self) -> None:
@@ -219,7 +219,7 @@ class TestRateLimiting:
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(429, headers={"Retry-After": "42"}))
 
         with _make_client(max_retries=0) as client, pytest.raises(RateLimitError) as exc_info:
-            client._get("player", {"wiki": "dota2"})
+            client.get("player", {"wiki": "dota2"})
 
         assert exc_info.value.retry_after == 42
 
@@ -233,7 +233,7 @@ class TestRateLimiting:
         ]
 
         with _make_client(max_retries=3, retry_backoff_factor=0.0) as client:
-            response = client._get("player", {"wiki": "dota2"})
+            response = client.get("player", {"wiki": "dota2"})
 
         assert response.result == [{"id": 1}]
 
@@ -292,3 +292,9 @@ class TestPagination:
             list(client.paginate("player", params, page_size=10))
 
         assert params == {"wiki": "dota2"}
+
+    @staticmethod
+    def test_paginate_invalid_page_size() -> None:
+        """Verify paginate() raises ValueError when page_size < 1."""
+        with _make_client() as client, pytest.raises(ValueError, match="page_size must be >= 1"):
+            list(client.paginate("player", {"wiki": "dota2"}, page_size=0))

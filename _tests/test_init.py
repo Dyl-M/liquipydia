@@ -10,7 +10,7 @@ def test_version_is_string() -> None:
 
 def test_version_value() -> None:
     """Verify that __version__ matches the expected value."""
-    assert __version__ == "0.0.2"
+    assert __version__ == "0.0.3"
 
 
 def test_author() -> None:
