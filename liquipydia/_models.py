@@ -199,7 +199,7 @@ class Placement(_LpdbModel):
     imagedarkurl: str | None = None
     startdate: NullableDatetime = None
     date: NullableDatetime = None
-    placement: str | None = None
+    placement: str | None = None  # skipcq: PTC-W0052 — field name matches API response key
     prizemoney: int | None = None
     individualprizemoney: int | None = None
     prizepoolindex: int | None = None
