@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "liquipydia"
-version = "0.0.3"
+version = "0.0.4"
 description = "Python client library for the Liquipedia API (LPDB v3)."
 readme = "README.md"
 license = "MIT"
@@ -36,11 +36,9 @@ Changelog = "https://github.com/Dyl-M/liquipydia/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "pytest==9.0.2",
-    "respx==0.22.0",
+    { include-group = "test" },
     "ruff==0.15.9",
     "mypy==1.20.0",
-    "coverage==7.13.5",
 ]
 test = [
     "pytest==9.0.2",
