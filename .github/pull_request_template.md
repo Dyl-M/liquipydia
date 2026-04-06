@@ -15,5 +15,5 @@
 ## Validation steps before merge
 
 - [ ] Lint & Test CI OK (no regression)
-- [ ] DeepSource Health-Check OK (no regression)
+- [ ] DeepSource health check OK (no regression)
 - [ ] Human review completed (post-changes made by DeepSource or automated tools)

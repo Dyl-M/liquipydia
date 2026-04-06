@@ -25,6 +25,7 @@ Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://doc
 liquipydia/
 ├── __init__.py       # Package exports, version
 ├── _client.py        # Core HTTP client (LiquipediaClient)
+├── _resources.py     # Resource classes (one per LPDB data type)
 ├── _exceptions.py    # Exception hierarchy
 ├── _response.py      # API response wrapper
 └── py.typed          # PEP 561 type marker
@@ -56,15 +57,47 @@ pip install git+https://github.com/Dyl-M/liquipydia.git
 from liquipydia import LiquipediaClient
 
 with LiquipediaClient("my-app", api_key="your-api-key") as client:
-    # Low-level request (resource helpers coming in v0.0.3)
-    response = client._get("player", {"wiki": "dota2", "limit": 5})
+    # Query players from a specific wiki
+    response = client.players.list("dota2", conditions="[[name::Miracle-]]")
     for player in response.result:
         print(player)
 
-    # Automatic pagination
-    for match in client.paginate("match", {"wiki": "counterstrike"}, page_size=100, max_results=500):
+    # Automatic pagination across multiple pages
+    for match in client.matches.paginate("counterstrike", page_size=100, max_results=500):
         print(match)
+
+    # Keyword filters — no need to write raw LPDB conditions
+    response = client.players.list("rocketleague", pagename="Zen")
+
+    # Match-specific parameters (stream data)
+    response = client.matches.list("rocketleague", rawstreams=True, streamurls=True)
+
+    # Team template lookup
+    response = client.team_templates.get("dota2", "teamliquid")
 ```
+
+### Available Resources
+
+All 16 LPDB v3 data types are accessible as client attributes:
+
+| Attribute                     | Endpoint             | Notes                             |
+|-------------------------------|----------------------|-----------------------------------|
+| `client.broadcasters`         | `/broadcasters`      |                                   |
+| `client.companies`            | `/company`           |                                   |
+| `client.datapoints`           | `/datapoint`         |                                   |
+| `client.external_media_links` | `/externalmedialink` |                                   |
+| `client.matches`              | `/match`             | Extra: `rawstreams`, `streamurls` |
+| `client.placements`           | `/placement`         |                                   |
+| `client.players`              | `/player`            |                                   |
+| `client.series`               | `/series`            |                                   |
+| `client.squad_players`        | `/squadplayer`       |                                   |
+| `client.standings_entries`    | `/standingsentry`    |                                   |
+| `client.standings_tables`     | `/standingstable`    |                                   |
+| `client.teams`                | `/team`              |                                   |
+| `client.tournaments`          | `/tournament`        |                                   |
+| `client.transfers`            | `/transfer`          |                                   |
+| `client.team_templates`       | `/teamtemplate`      | Uses `get()` instead of `list()`  |
+| `client.team_template_list`   | `/teamtemplatelist`  | Different params (`pagination`)   |
 
 > The API key can also be set via the `LIQUIPEDIA_API_KEY` environment variable.
 

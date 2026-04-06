@@ -35,31 +35,57 @@ The foundation everything else depends on. Handles transport, auth, compliance w
 One resource class per LPDB data type, attached to the client as attributes. Each resource mirrors a single API
 endpoint.
 
-- [ ] Base `Resource` class with shared logic (`list`, `get_by_id` if applicable)
-- [ ] `client.broadcasters` — `/v3/broadcasters`
-- [ ] `client.companies` — `/v3/company`
-- [ ] `client.datapoints` — `/v3/datapoint`
-- [ ] `client.external_media_links` — `/v3/externalmedialink`
-- [ ] `client.matches` — `/v3/match`
-- [ ] `client.placements` — `/v3/placement`
-- [ ] `client.players` — `/v3/player`
-- [ ] `client.series` — `/v3/series`
-- [ ] `client.squad_players` — `/v3/squadplayer`
-- [ ] `client.standings_entries` — `/v3/standingsentry`
-- [ ] `client.standings_tables` — `/v3/standingstable`
-- [ ] `client.teams` — `/v3/team`
-- [ ] `client.tournaments` — `/v3/tournament`
-- [ ] `client.transfers` — `/v3/transfer`
-- [ ] `client.team_templates` — `/v3/teamtemplate`
-- [ ] `client.team_template_list` — `/v3/teamtemplatelist`
+- [x] Base `Resource` class with shared logic (`list`, `paginate`)
+- [x] Named subclass per standard endpoint (13 subclasses inheriting from `Resource`)
+- [x] `MatchResource` subclass with extra `rawstreams` / `streamurls` parameters
+- [x] `TeamTemplateResource` (standalone, uses `get()` — different API signature)
+- [x] `TeamTemplateListResource` (standalone, uses `pagination` param)
+- [x] Keyword filters: `**filters` kwargs on `list()` / `paginate()` auto-converted to LPDB conditions
+  (e.g. `name="Zen"` becomes `[[name::Zen]]`, combinable with explicit `conditions`)
+- [x] `client.broadcasters` — `/v3/broadcasters`
+- [x] `client.companies` — `/v3/company`
+- [x] `client.datapoints` — `/v3/datapoint`
+- [x] `client.external_media_links` — `/v3/externalmedialink`
+- [x] `client.matches` — `/v3/match`
+- [x] `client.placements` — `/v3/placement`
+- [x] `client.players` — `/v3/player`
+- [x] `client.series` — `/v3/series`
+- [x] `client.squad_players` — `/v3/squadplayer`
+- [x] `client.standings_entries` — `/v3/standingsentry`
+- [x] `client.standings_tables` — `/v3/standingstable`
+- [x] `client.teams` — `/v3/team`
+- [x] `client.tournaments` — `/v3/tournament`
+- [x] `client.transfers` — `/v3/transfer`
+- [x] `client.team_templates` — `/v3/teamtemplate`
+- [x] `client.team_template_list` — `/v3/teamtemplatelist`
 
-Each resource exposes at minimum:
+Each resource exposes:
 
 ```python
-def list(self, wiki: str, *, conditions: str | None, limit: int = 50, offset: int = 0, order: str | None) -> list[Model]
+def list(
+        self, wiki: str, *,
+        conditions: str | None, query: str | None,
+        limit: int = 50, offset: int = 0,
+        order: str | None, groupby: str | None,
+        rawstreams: bool = False, streamurls: bool = False,
+        **filters: str,
+) -> ApiResponse
+
+
+def paginate(
+        self, wiki: str, *,
+        conditions: str | None, query: str | None,
+        order: str | None, groupby: str | None,
+        rawstreams: bool = False, streamurls: bool = False,
+        page_size: int = 50, max_results: int | None,
+        **filters: str,
+) -> Iterator[dict]
 ```
 
-Query parameter mapping follows the LPDB v3 API (wiki, conditions, limit, offset, order, etc.).
+- `rawstreams` / `streamurls` are only meaningful on the `/match` endpoint (ignored by others).
+- `**filters` are keyword arguments auto-converted to LPDB conditions (e.g. `pagename="Zen"` → `[[pagename::Zen]]`).
+  Supports `>`, `<`, `!` operator prefixes.
+- Query parameter mapping follows the LPDB v3 API (wiki, conditions, limit, offset, order, groupby, etc.).
 
 ## v0.0.4 — Pydantic models
 
