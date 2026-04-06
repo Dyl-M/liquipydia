@@ -292,3 +292,8 @@ class TestPagination:
             list(client.paginate("player", params, page_size=10))
 
         assert params == {"wiki": "dota2"}
+
+    def test_paginate_invalid_page_size(self) -> None:
+        """Verify paginate() raises ValueError when page_size < 1."""
+        with _make_client() as client, pytest.raises(ValueError, match="page_size must be >= 1"):
+            list(client.paginate("player", {"wiki": "dota2"}, page_size=0))
