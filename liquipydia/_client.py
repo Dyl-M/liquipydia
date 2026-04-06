@@ -12,11 +12,29 @@ import httpx
 
 # Local
 from liquipydia._exceptions import ApiError, AuthError, LiquipediaError, NotFoundError, RateLimitError
+from liquipydia._resources import (
+    BroadcastersResource,
+    CompaniesResource,
+    DatapointsResource,
+    ExternalMediaLinksResource,
+    MatchResource,
+    PlacementsResource,
+    PlayersResource,
+    SeriesResource,
+    SquadPlayersResource,
+    StandingsEntriesResource,
+    StandingsTablesResource,
+    TeamsResource,
+    TeamTemplateListResource,
+    TeamTemplateResource,
+    TournamentsResource,
+    TransfersResource,
+)
 from liquipydia._response import ApiResponse
 
 # === Constants ===
 
-_VERSION: Final[str] = "0.0.2"
+_VERSION: Final[str] = "0.0.3"
 _BASE_URL: Final[str] = "https://api.liquipedia.net/api/v3/"
 _ENV_API_KEY: Final[str] = "LIQUIPEDIA_API_KEY"
 _MAX_BACKOFF: Final[float] = 60.0
@@ -37,8 +55,27 @@ class LiquipediaClient:
 
     Examples:
         >>> with LiquipediaClient("my-app", api_key="secret") as client:
-        ...     response = client._get("player", {"wiki": "dota2"})
+        ...     response = client.players.list("dota2")
     """
+
+    # --- Resource attributes ---
+
+    broadcasters: BroadcastersResource
+    companies: CompaniesResource
+    datapoints: DatapointsResource
+    external_media_links: ExternalMediaLinksResource
+    matches: MatchResource
+    placements: PlacementsResource
+    players: PlayersResource
+    series: SeriesResource
+    squad_players: SquadPlayersResource
+    standings_entries: StandingsEntriesResource
+    standings_tables: StandingsTablesResource
+    teams: TeamsResource
+    tournaments: TournamentsResource
+    transfers: TransfersResource
+    team_templates: TeamTemplateResource
+    team_template_list: TeamTemplateListResource
 
     def __init__(
         self,
@@ -64,6 +101,24 @@ class LiquipediaClient:
 
         self._http = httpx.Client(base_url=_BASE_URL, headers=headers, timeout=timeout)
 
+        # --- Resources ---
+        self.broadcasters = BroadcastersResource(self)
+        self.companies = CompaniesResource(self)
+        self.datapoints = DatapointsResource(self)
+        self.external_media_links = ExternalMediaLinksResource(self)
+        self.matches = MatchResource(self)
+        self.placements = PlacementsResource(self)
+        self.players = PlayersResource(self)
+        self.series = SeriesResource(self)
+        self.squad_players = SquadPlayersResource(self)
+        self.standings_entries = StandingsEntriesResource(self)
+        self.standings_tables = StandingsTablesResource(self)
+        self.teams = TeamsResource(self)
+        self.tournaments = TournamentsResource(self)
+        self.transfers = TransfersResource(self)
+        self.team_templates = TeamTemplateResource(self)
+        self.team_template_list = TeamTemplateListResource(self)
+
     # --- Context manager ---
 
     def __enter__(self) -> Self:
@@ -85,7 +140,7 @@ class LiquipediaClient:
 
     # --- Request handling ---
 
-    def _get(self, endpoint: str, params: dict[str, Any]) -> ApiResponse:
+    def get(self, endpoint: str, params: dict[str, Any]) -> ApiResponse:
         """Send a GET request to the API and return the parsed response.
 
         Args:
@@ -181,12 +236,15 @@ class LiquipediaClient:
         Yields:
             Individual record dicts from the API.
         """
+        if page_size < 1:
+            raise ValueError(f"page_size must be >= 1, got {page_size}")
+
         offset = 0
         yielded = 0
 
         while True:
             page_params = params | {"limit": page_size, "offset": offset}
-            response = self._get(endpoint, page_params)
+            response = self.get(endpoint, page_params)
             records = response.result
 
             for record in records:
