@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-04-06
+
+### Added
+
+- Resource layer: base `Resource` class with `list()` and `paginate()` methods
+- 13 standard resource subclasses (one per LPDB endpoint: player, team, tournament, etc.)
+- `MatchResource` subclass with `rawstreams`/`streamurls` support (excluded from request when `False`)
+- `TeamTemplateResource` standalone class with `get(wiki, template)` for single template lookups
+- `TeamTemplateListResource` standalone class with `list(wiki, pagination)` for template listing
+- Keyword filters (`**filters: str`) on `list()`/`paginate()` auto-converted to LPDB conditions
+  (e.g. `name="Zen"` → `[[name::Zen]]`), AND-joined with explicit `conditions`
+- Operator prefix support in keyword filters (`>`, `<`, `!`)
+- `page_size` validation in `paginate()` raising `ValueError` if `< 1`
+- All 16 resources attached as typed attributes on `LiquipediaClient`
+- Available Resources table in README with all endpoints and notes
+- Test suite for resource layer, keyword filters, and client resource attributes
+
+### Changed
+
+- Bump version to 0.0.3
+- Rename `_get()` → `get()` on `LiquipediaClient` to allow cross-module access from resources
+- Replace low-level Quick Start examples in README with resource-based usage
+- Update roadmap with completed v0.0.3 items and full method signatures
+- Re-export `Resource` and all 16 subclasses from `__init__.py`
+
 ## [0.0.2] - 2026-04-05
 
 ### Added
@@ -57,7 +82,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downgrade `astral-sh/setup-uv` from v8 to v7 (v8 major tag does not exist)
 - Enforce docstrings in test suite (remove pydocstyle exemption for `_tests/`)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.2...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.3...dev
 
+[0.0.3]: https://github.com/Dyl-M/liquipydia/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Dyl-M/liquipydia/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Dyl-M/liquipydia/releases/tag/v0.0.1
