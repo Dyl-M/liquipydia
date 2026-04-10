@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-04-10
+
+### Added
+
+- Integration test suite in `_tests/test_integration.py` with `@pytest.mark.integration` marker (auto-skips when no
+  API key is available; resolves key from `LPDB_API_KEY` env var or `.tokens/tokens.json`)
+- Sphinx + Furo documentation site in `_docs/sphinx/` with Liquipedia-themed colors, autodoc API reference,
+  getting-started guide, examples with output blocks, and changelog page
+- Jinja2 template override for clickable author name in Furo footer
+- GitHub Pages deployment workflow (`.github/workflows/docs.yml`, triggers on push to `main`)
+- `LPDB_API_KEY` secret as env var in CI test job for integration tests
+- Sphinx copyright year update step in license workflow (renamed to "Update License & Copyright years")
+- Documentation section in README linking to GitHub Pages site
+- Output blocks (`text` code fences) to code examples in README, getting-started, examples, and index pages
+- Post-release section in roadmap with conda-forge package goal
+
+### Changed
+
+- Switch documentation stack from mkdocs-material + mkdocstrings to Sphinx 9 + Furo + myst-parser +
+  sphinx-autodoc-typehints + sphinx-copybutton + sphinx-autobuild
+- Move documentation source from `docs/` to `_docs/sphinx/`
+- Replace static `_LpdbModel` field table in models reference with autodoc directives for both base classes
+- Update roadmap with completed v0.0.5 items
+
+### Fixed
+
+- Remove incorrect `endpoint` parameter from `Resource` class docstring `Args:` section
+
 ## [0.0.4] - 2026-04-06
 
 ### Added
@@ -109,7 +137,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Downgrade `astral-sh/setup-uv` from v8 to v7 (v8 major tag does not exist)
 - Enforce docstrings in test suite (remove pydocstyle exemption for `_tests/`)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.4...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.5...dev
+
+[0.0.5]: https://github.com/Dyl-M/liquipydia/compare/v0.0.4...v0.0.5
 
 [0.0.4]: https://github.com/Dyl-M/liquipydia/compare/v0.0.3...v0.0.4
 
