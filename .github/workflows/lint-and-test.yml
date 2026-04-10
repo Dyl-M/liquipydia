@@ -78,6 +78,8 @@ jobs:
         run: uv sync --group test
 
       - name: Run tests with coverage
+        env:
+          LPDB_API_KEY: ${{ secrets.LPDB_API_KEY }}
         run: uv run coverage run -m pytest
 
       - name: Coverage report
