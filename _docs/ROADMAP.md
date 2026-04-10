@@ -113,11 +113,16 @@ Typed response models for IDE autocompletion and validation. One model per data 
 - [x] Unit tests for client (request building, headers, error handling) using `respx` to mock `httpx`
 - [x] Unit tests for each resource (parameter construction, response parsing)
 - [x] Unit tests for Pydantic models (validation, edge cases)
-- [ ] Integration test suite (opt-in, requires real API key, skipped in CI by default)
-- [ ] `mkdocs-material` documentation site
+- [x] Integration test suite (opt-in, requires real API key via `LPDB_API_KEY` env var or `.tokens/tokens.json`;
+  `@pytest.mark.integration` marker, auto-skips when no key is available)
+- [x] Sphinx + Furo documentation site (`_docs/sphinx/`)
     - Getting started / quickstart
-    - API reference (auto-generated from docstrings)
-    - Examples per resource
+    - API reference (auto-generated from docstrings via `autodoc` + `napoleon` + `sphinx-autodoc-typehints`)
+    - Examples per resource with output blocks
+    - Changelog (included from root `CHANGELOG.md`)
+    - Liquipedia-themed colors, clickable author footer
+- [x] GitHub Pages deployment workflow (`.github/workflows/docs.yml`, triggers on push to `main`)
+- [x] CI integration tests (LPDB_API_KEY secret in GitHub Actions test job)
 
 ## v0.1.0 — First public release
 
@@ -126,6 +131,10 @@ First PyPI release covering the full LPDB v3 surface.
 - [ ] PyPI publish workflow (GitHub Actions, trusted publishing)
 - [ ] `CHANGELOG.md` entry
 - [ ] GitHub Release with notes
+
+## Post-release
+
+- [ ] conda-forge package (submit recipe to `conda-forge/staged-recipes`, auto-rebuilds on PyPI releases)
 
 ## Future / Out of scope for v1
 
