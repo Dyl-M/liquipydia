@@ -211,3 +211,6 @@ __marimo__/
 .tokens/
 _drafts/
 CLAUDE.md
+
+# Sphinx build output
+_docs/sphinx/_build*/
