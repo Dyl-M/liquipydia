@@ -66,7 +66,8 @@ def _make_client() -> LiquipediaClient:
 class TestIntegration:
     """Integration tests against the live Liquipedia API."""
 
-    def test_players_list(self) -> None:
+    @staticmethod
+    def test_players_list() -> None:
         """Standard resource list returns parseable results."""
         with _make_client() as client:
             response = client.players.list(_WIKI, limit=5)
@@ -77,7 +78,8 @@ class TestIntegration:
         for record in response.result:
             Player.model_validate(record)
 
-    def test_tournaments_list(self) -> None:
+    @staticmethod
+    def test_tournaments_list() -> None:
         """Another standard resource returns parseable results."""
         with _make_client() as client:
             response = client.tournaments.list(_WIKI, limit=5)
@@ -88,7 +90,8 @@ class TestIntegration:
         for record in response.result:
             Tournament.model_validate(record)
 
-    def test_matches_list(self) -> None:
+    @staticmethod
+    def test_matches_list() -> None:
         """Match resource returns parseable results."""
         with _make_client() as client:
             response = client.matches.list(_WIKI, limit=5)
@@ -99,7 +102,8 @@ class TestIntegration:
         for record in response.result:
             Match.model_validate(record)
 
-    def test_matches_with_streams(self) -> None:
+    @staticmethod
+    def test_matches_with_streams() -> None:
         """Match resource with rawstreams and streamurls parameters."""
         with _make_client() as client:
             response = client.matches.list(_WIKI, limit=5, rawstreams=True, streamurls=True)
@@ -110,7 +114,8 @@ class TestIntegration:
         for record in response.result:
             Match.model_validate(record)
 
-    def test_team_template_get(self) -> None:
+    @staticmethod
+    def test_team_template_get() -> None:
         """TeamTemplateResource.get() with different API signature."""
         with _make_client() as client:
             response = client.team_templates.get(_WIKI, "team liquid")
@@ -121,7 +126,8 @@ class TestIntegration:
 
         TeamTemplate.model_validate(records[0])
 
-    def test_team_template_list(self) -> None:
+    @staticmethod
+    def test_team_template_list() -> None:
         """TeamTemplateListResource.list() returns parseable results."""
         with _make_client() as client:
             response = client.team_template_list.list(_WIKI)
@@ -133,7 +139,8 @@ class TestIntegration:
         for record in records:
             TeamTemplateList.model_validate(record)
 
-    def test_pagination(self) -> None:
+    @staticmethod
+    def test_pagination() -> None:
         """Pagination yields the expected number of records."""
         with _make_client() as client:
             records = list(client.players.paginate(_WIKI, page_size=2, max_results=5))
@@ -143,7 +150,8 @@ class TestIntegration:
         for record in records:
             Player.model_validate(record)
 
-    def test_keyword_filter(self) -> None:
+    @staticmethod
+    def test_keyword_filter() -> None:
         """Keyword filter narrows results."""
         with _make_client() as client:
             response = client.teams.list(_WIKI, pagename="Moist_Esports")
