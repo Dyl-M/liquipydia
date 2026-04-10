@@ -79,6 +79,12 @@ with LiquipediaClient("my-app", api_key="your-api-key") as client:
     response = client.team_templates.get("dota2", "teamliquid")
 ```
 
+```text
+Miracle- Jordan 1997-06-20
+0042_R01-M001 2025-06-15 14:00:00 1
+...
+```
+
 ### Available Resources
 
 All 16 LPDB v3 data types are accessible as client attributes:
@@ -120,11 +126,22 @@ print(player.birthdate)  # date | None — null sentinels auto-converted
 print(player.links)  # dict | None — empty API lists auto-converted
 ```
 
+```text
+Miracle-
+1997-06-20
+{'twitter': 'https://twitter.com/Aborss', ...}
+```
+
 Models handle LPDB quirks automatically:
 
 - Null date sentinels (`"0000-01-01"`, `""`) → `None`
 - Empty dict placeholders (`[]`) → `None`
 - Unknown/future API fields are preserved (`extra="allow"`)
+
+## Documentation
+
+Full documentation (getting started, examples, API reference) is available at
+**[dyl-m.github.io/liquipydia](https://dyl-m.github.io/liquipydia/)**.
 
 ## Development
 

@@ -20,10 +20,11 @@ class Resource:
     """Base resource wrapping a single LPDB v3 endpoint.
 
     Provides ``list`` and ``paginate`` methods that delegate HTTP calls to the parent client.
+    Subclasses set ``_endpoint`` to the API path segment (e.g. ``"player"``).
+
 
     Args:
         client: The parent LiquipediaClient instance.
-        endpoint: API path segment (e.g. ``"player"``).
     """
 
     _endpoint: str

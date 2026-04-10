@@ -1,4 +1,4 @@
-name: Update License years
+name: Update License & Copyright years
 
 on:
   workflow_dispatch:
@@ -20,6 +20,11 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
+
+      - name: Update Sphinx copyright year
+        run: |
+          YEAR=$(date +%Y)
+          sed -i "s/copyright = \"[0-9]\\{4\\},/copyright = \"$YEAR,/" _docs/sphinx/conf.py
 
       - uses: FantasticFiasco/action-update-license-year@v3
         with:
