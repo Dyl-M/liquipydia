@@ -10,19 +10,25 @@ Paid plans (Basic, Premium, Enterprise) are available for commercial use.
 
 ## Installation
 
-```{note}
-Not yet published on PyPI. Install from source for now.
-```
-
 With uv (recommended):
 
 ```bash
-uv add git+https://github.com/Dyl-M/liquipydia.git
+uv add liquipydia
 ```
 
 With pip:
 
 ```bash
+pip install liquipydia
+```
+
+Or install from source:
+
+```bash
+# With uv
+uv add git+https://github.com/Dyl-M/liquipydia.git
+
+# With pip
 pip install git+https://github.com/Dyl-M/liquipydia.git
 ```
 
