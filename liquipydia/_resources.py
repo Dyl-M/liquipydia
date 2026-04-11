@@ -3,6 +3,7 @@
 # Standard library
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -148,10 +149,14 @@ class Resource:
         Returns:
             Merged condition string, or ``None`` if both inputs are empty.
         """
+        valid_field = re.compile(r"[a-z_][a-z0-9_]*", re.IGNORECASE)
+
         parts: list[str] = []
         if conditions:
             parts.append(conditions)
         for key, value in filters.items():
+            if not valid_field.fullmatch(key):
+                raise ValueError(f"Invalid filter key: {key!r}")
             parts.append(f"[[{key}::{value}]]")
         return " AND ".join(parts) if parts else None
 
