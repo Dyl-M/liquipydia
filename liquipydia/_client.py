@@ -168,7 +168,7 @@ class LiquipediaClient:
             retry_after = self._get_retry_after(response)
             last_retry_after = retry_after
             backoff = min(self._retry_backoff_factor * (2**attempt), _MAX_BACKOFF)
-            sleep_duration: float = retry_after if retry_after > 0 else backoff
+            sleep_duration: float = max(retry_after, backoff) if retry_after > 0 else backoff
 
             if attempt < self._max_retries:
                 time.sleep(sleep_duration)
@@ -200,11 +200,18 @@ class LiquipediaClient:
         if response.status_code >= 400:
             raise LiquipediaError(f"HTTP {response.status_code}: {response.text}")
 
-        body: dict[str, Any] = response.json()
+        try:
+            body = response.json()
+        except Exception as exc:
+            raise LiquipediaError(f"Failed to parse API response: {exc}") from exc
 
-        errors: list[str] = body.get("error", [])
-        if errors:
-            raise ApiError("; ".join(errors))
+        if not isinstance(body, dict):
+            raise LiquipediaError(f"Unexpected API response format: {type(body).__name__}")
+
+        raw_errors = body.get("error", [])
+        if raw_errors:
+            error_list = [raw_errors] if isinstance(raw_errors, str) else list(raw_errors)
+            raise ApiError("; ".join(str(e) for e in error_list))
 
         return ApiResponse(
             result=body.get("result", []),
