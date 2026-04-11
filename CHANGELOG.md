@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-04-11
+
+### Added
+
+- PyPI publish workflow (`.github/workflows/publish.yml`) using GitHub Actions trusted publishing (OIDC) — triggers on
+  GitHub Release creation
+- Documentation URL in `pyproject.toml` project metadata
+
+### Changed
+
+- Bump version to 0.1.0 — first public PyPI release
+- Update development status classifier from "Planning" to "Beta"
+- Update installation instructions in README and Sphinx docs to use PyPI (`pip install liquipydia`)
+
 ## [0.0.5] - 2026-04-10
 
 ### Added
@@ -131,7 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.gitattributes` with LF line ending normalization
 - `CHANGELOG.md` (this file)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.5...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.0...dev
+
+[0.1.0]: https://github.com/Dyl-M/liquipydia/compare/v0.0.5...v0.1.0
 
 [0.0.5]: https://github.com/Dyl-M/liquipydia/compare/v0.0.4...v0.0.5
 
