@@ -9,6 +9,7 @@ Tests are automatically skipped when no key is available.
 import json
 import os
 from pathlib import Path
+import time
 
 # Third-party
 import pytest
@@ -65,6 +66,12 @@ def _make_client() -> LiquipediaClient:
 
 class TestIntegration:
     """Integration tests against the live Liquipedia API."""
+
+    @staticmethod
+    @pytest.fixture(autouse=True)
+    def _rate_limit_delay() -> None:
+        """Pause between tests to avoid hitting the Liquipedia API rate limit."""
+        time.sleep(10)
 
     @staticmethod
     def test_players_list() -> None:
