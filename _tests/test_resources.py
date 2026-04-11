@@ -269,27 +269,24 @@ class TestKeywordFilters:
         """Verify a filter key with invalid characters raises ValueError."""
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
-        with _make_client() as client:
-            with pytest.raises(ValueError, match="Invalid filter key"):
-                client.players.list("rocketleague", **{"bad key!": "value"})
+        with _make_client() as client, pytest.raises(ValueError, match="Invalid filter key"):
+            client.players.list("rocketleague", **{"bad key!": "value"})
 
     @respx.mock
     def test_list_rejects_unknown_filter_key(self) -> None:
         """Verify an unknown filter key raises ValueError."""
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
-        with _make_client() as client:
-            with pytest.raises(ValueError, match="Unknown filter key 'fakefield'"):
-                client.players.list("rocketleague", fakefield="value")
+        with _make_client() as client, pytest.raises(ValueError, match="Unknown filter key 'fakefield'"):
+            client.players.list("rocketleague", fakefield="value")
 
     @respx.mock
     def test_paginate_rejects_unknown_filter_key(self) -> None:
         """Verify an unknown filter key raises ValueError on paginate()."""
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
-        with _make_client() as client:
-            with pytest.raises(ValueError, match="Unknown filter key 'fakefield'"):
-                list(client.players.paginate("rocketleague", fakefield="value"))
+        with _make_client() as client, pytest.raises(ValueError, match="Unknown filter key 'fakefield'"):
+            list(client.players.paginate("rocketleague", fakefield="value"))
 
 
 # === Match Resource ===
