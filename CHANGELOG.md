@@ -14,12 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PyPI publish workflow (`.github/workflows/publish.yml`) using GitHub Actions trusted publishing (OIDC) — triggers on
   GitHub Release creation
 - Documentation URL in `pyproject.toml` project metadata
+- Filter key validation on `Resource.list()` and `Resource.paginate()` — unknown keys raise `ValueError` with the list
+  of valid fields, validated against each resource's Pydantic model
+- "Development Commands" section in `CONTRIBUTING.md` with lint, format, type check, test, coverage, and docs commands
 
 ### Changed
 
 - Bump version to 0.1.0 — first public PyPI release
 - Update development status classifier from "Planning" to "Beta"
 - Update installation instructions in README and Sphinx docs to use PyPI (`pip install liquipydia`)
+- Update README status badge and label from "early development" to "beta"
+
+### Fixed
+
+- Harden response parsing and retry backoff logic in `LiquipediaClient`
+- Validate filter key format with regex before checking against model fields
+- Add rate limit delay (10s) between integration tests to prevent API throttling in CI
 
 ## [0.0.5] - 2026-04-10
 
