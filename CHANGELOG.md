@@ -25,10 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Switch documentation stack from mkdocs-material + mkdocstrings to Sphinx 9 + Furo + myst-parser +
+- Bump version to 0.0.5
+- Switch documentation dependencies from mkdocs-material + mkdocstrings to Sphinx 9 + Furo + myst-parser +
   sphinx-autodoc-typehints + sphinx-copybutton + sphinx-autobuild
-- Move documentation source from `docs/` to `_docs/sphinx/`
-- Replace static `_LpdbModel` field table in models reference with autodoc directives for both base classes
 - Update roadmap with completed v0.0.5 items
 
 ### Fixed
@@ -131,11 +130,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.deepsource.toml` for static analysis and test coverage reporting
 - `.gitattributes` with LF line ending normalization
 - `CHANGELOG.md` (this file)
-
-### Fixed
-
-- Downgrade `astral-sh/setup-uv` from v8 to v7 (v8 major tag does not exist)
-- Enforce docstrings in test suite (remove pydocstyle exemption for `_tests/`)
 
 [Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.0.5...dev
 
