@@ -34,7 +34,7 @@ from liquipydia._response import ApiResponse
 
 # === Constants ===
 
-_VERSION: Final[str] = "0.0.5"
+_VERSION: Final[str] = "0.1.0"
 _BASE_URL: Final[str] = "https://api.liquipedia.net/api/v3/"
 _ENV_API_KEY: Final[str] = "LIQUIPEDIA_API_KEY"
 _MAX_BACKOFF: Final[float] = 60.0
