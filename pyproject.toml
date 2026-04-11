@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "liquipydia"
-version = "0.0.5"
+version = "0.1.0"
 description = "Python client library for the Liquipedia API (LPDB v3)."
 readme = "README.md"
 license = "MIT"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["liquipedia", "esports", "api", "api-client", "lpdb"]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -30,6 +30,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/Dyl-M/liquipydia"
+Documentation = "https://dyl-m.github.io/liquipydia/"
 Repository = "https://github.com/Dyl-M/liquipydia"
 Issues = "https://github.com/Dyl-M/liquipydia/issues"
 Changelog = "https://github.com/Dyl-M/liquipydia/blob/main/CHANGELOG.md"

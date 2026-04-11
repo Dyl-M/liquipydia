@@ -63,22 +63,22 @@ Each resource exposes:
 
 ```python
 def list(
-        self, wiki: str, *,
-        conditions: str | None, query: str | None,
-        limit: int = 50, offset: int = 0,
-        order: str | None, groupby: str | None,
-        rawstreams: bool = False, streamurls: bool = False,
-        **filters: str,
+    self, wiki: str, *,
+    conditions: str | None, query: str | None,
+    limit: int = 50, offset: int = 0,
+    order: str | None, groupby: str | None,
+    rawstreams: bool = False, streamurls: bool = False,
+    **filters: str,
 ) -> ApiResponse
 
 
 def paginate(
-        self, wiki: str, *,
-        conditions: str | None, query: str | None,
-        order: str | None, groupby: str | None,
-        rawstreams: bool = False, streamurls: bool = False,
-        page_size: int = 50, max_results: int | None,
-        **filters: str,
+    self, wiki: str, *,
+    conditions: str | None, query: str | None,
+    order: str | None, groupby: str | None,
+    rawstreams: bool = False, streamurls: bool = False,
+    page_size: int = 50, max_results: int | None,
+    **filters: str,
 ) -> Iterator[dict]
 ```
 
@@ -128,8 +128,8 @@ Typed response models for IDE autocompletion and validation. One model per data 
 
 First PyPI release covering the full LPDB v3 surface.
 
-- [ ] PyPI publish workflow (GitHub Actions, trusted publishing)
-- [ ] `CHANGELOG.md` entry
+- [x] PyPI publish workflow (GitHub Actions, trusted publishing)
+- [x] `CHANGELOG.md` entry
 - [ ] GitHub Release with notes
 
 ## Post-release

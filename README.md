@@ -5,7 +5,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![License](https://img.shields.io/github/license/Dyl-M/liquipydia)
 
-![Status](https://img.shields.io/badge/status-early%20development-orange?style=flat-square)
+![Status](https://img.shields.io/badge/status-beta-green?style=flat-square)
 [![Lint & Test](https://img.shields.io/github/actions/workflow/status/Dyl-M/liquipydia/lint-and-test.yml?label=Lint%20%26%20Test&style=flat-square&logo=github-actions&logoColor=white)](https://github.com/Dyl-M/liquipydia/actions/workflows/lint-and-test.yml)
 [![DeepSource](https://app.deepsource.com/gh/Dyl-M/liquipydia.svg/?label=active+issues&show_trend=true&token=TOKEN)](https://app.deepsource.com/gh/Dyl-M/liquipydia/)
 [![DeepSource](https://app.deepsource.com/gh/Dyl-M/liquipydia.svg/?label=code+coverage&show_trend=true&token=TOKEN)](https://app.deepsource.com/gh/Dyl-M/liquipydia/)
@@ -17,7 +17,7 @@
 
 Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://docs.pydantic.dev/).
 
-> **Status:** Early development — see the [Roadmap](_docs/ROADMAP.md) for progress.
+> **Status:** Beta — see the [Roadmap](_docs/ROADMAP.md) for progress.
 
 ## Project Structure
 
@@ -42,10 +42,18 @@ Paid plans (Basic, Premium, Enterprise) are available for commercial use.
 
 ## Installation
 
-> **Note:** Not yet published on PyPI. Install from source for now.
-
 ```bash
 # With uv (recommended)
+uv add liquipydia
+
+# With pip
+pip install liquipydia
+```
+
+Or install from source:
+
+```bash
+# With uv
 uv add git+https://github.com/Dyl-M/liquipydia.git
 
 # With pip

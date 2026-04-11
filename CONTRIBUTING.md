@@ -11,7 +11,35 @@ Thanks for your interest in contributing to **`liquipydia`**! Here are a few gui
    git checkout -b your-branch-name dev
    ```
 
-3. Make your changes, then push to your fork and open a pull request targeting `dev`.
+3. Install all development dependencies:
+
+   ```bash
+   uv sync --group dev
+   ```
+
+4. Make your changes, then push to your fork and open a pull request targeting `dev`.
+
+## Development Commands
+
+```bash
+# Lint & format
+uv run ruff check .              # lint
+uv run ruff format --check .     # format check
+uv run ruff check --fix .        # auto-fix lint issues
+uv run ruff format .             # auto-format
+
+# Type check
+uv run mypy liquipydia
+
+# Tests
+uv run pytest                                            # full test suite
+uv run coverage run -m pytest && uv run coverage report  # with coverage
+
+# Documentation
+uv sync --group docs                                               # install docs dependencies
+uv run sphinx-build -b html _docs/sphinx _docs/sphinx/_build/html  # one-off build
+uv run sphinx-autobuild _docs/sphinx _docs/sphinx/_build/html      # live preview with hot reload
+```
 
 ## Branch Strategy
 
