@@ -33,6 +33,6 @@ jobs:
       - name: Run semantic-release
         run: |
           pip install python-semantic-release==9.21.0
-          semantic-release version --push --vcs-release
+          semantic-release version --push --vcs-release --no-changelog
         env:
           GH_TOKEN: ${{ secrets.PAT }}
