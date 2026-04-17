@@ -1,4 +1,4 @@
-# `liquipydia` — Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
+# LIQUIPYDIA | Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
 
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
@@ -17,7 +17,7 @@
 
 Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://docs.pydantic.dev/).
 
-> **Status:** Beta — see the [Roadmap](_docs/ROADMAP.md) for progress.
+> **Status:** Beta — see the [Roadmap](https://github.com/Dyl-M/liquipydia/blob/main/_docs/ROADMAP.md) for progress.
 
 ## Project Structure
 
@@ -174,7 +174,7 @@ uv run pytest
 
 ## License
 
-Code is licensed under the [MIT License](LICENSE).
+Code is licensed under the [MIT License](https://github.com/Dyl-M/liquipydia/blob/main/LICENSE).
 
 ## Data License
 
@@ -185,8 +185,8 @@ through this library, you must comply with the CC-BY-SA 3.0 attribution requirem
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](https://github.com/Dyl-M/liquipydia/blob/main/CONTRIBUTING.md) for guidelines.
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+See [SECURITY.md](https://github.com/Dyl-M/liquipydia/blob/main/SECURITY.md) for reporting vulnerabilities.
