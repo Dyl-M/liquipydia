@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Automatic semantic release workflow (`.github/workflows/release.yml`) using `python-semantic-release` v9 — parses
+  Conventional Commit prefixes to determine version bump, updates all version locations, creates GitHub Release
+- `[tool.semantic_release]` configuration in `pyproject.toml` for version bumping, tagging, and release creation
+- PyPI version badge in README (auto-updates via shields.io)
+- Tests for malformed JSON and non-dict JSON API responses in `TestParseResponse`
+
+### Changed
+
+- Replace hardcoded version assertion in `test_version_value` with semver format regex check
+- Replace relative file links with absolute GitHub URLs in README and CONTRIBUTING to fix broken links on PyPI
+- Reformat README title heading
+- Update roadmap: mark v0.1.0 GitHub Release as complete, add semantic release as post-release item, expand "Future"
+  section with HTTP client dependency evaluation
+
 ## [0.1.0] - 2026-04-11
 
 ### Added
