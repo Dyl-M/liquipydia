@@ -1,5 +1,6 @@
 # LIQUIPYDIA | Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
 
+[![PyPI](https://img.shields.io/pypi/v/liquipydia?logo=pypi&logoColor=white)](https://pypi.org/project/liquipydia/)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
