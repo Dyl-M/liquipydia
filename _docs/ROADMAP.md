@@ -130,15 +130,30 @@ First PyPI release covering the full LPDB v3 surface.
 
 - [x] PyPI publish workflow (GitHub Actions, trusted publishing)
 - [x] `CHANGELOG.md` entry
-- [ ] GitHub Release with notes
+- [x] GitHub Release with notes
 
 ## Post-release
 
+- [x] Automatic semantic release (`python-semantic-release` v9, `.github/workflows/release.yml`)
+    - Parses Conventional Commit prefixes from squash-merge messages to determine bump type
+    - Bumps version in `pyproject.toml`, `__init__.py`, and `_client.py` automatically
+    - Commits, tags, and creates GitHub Release → triggers existing `publish.yml` → PyPI
+    - `CHANGELOG.md` remains manually maintained (not managed by PSR)
 - [ ] conda-forge package (submit recipe to `conda-forge/staged-recipes`, auto-rebuilds on PyPI releases)
 
 ## Future / Out of scope for v1
 
-- Async support (`AsyncLiquipediaClient` wrapping `httpx.AsyncClient`, async resource classes, `pytest-asyncio`)
+- Evaluate HTTP client dependency — `httpx` maintenance has stalled (last release: Nov 2024, no 0.28.2 despite merged
+  patches, issues/discussions disabled). The maintainer (Tom Christie / Encode) has a pattern of abandoning projects
+  (MkDocs, DRF, Starlette). Both Anthropic and OpenAI SDKs pin `httpx<1` anticipating breaking changes from a
+  potential 1.0 rewrite. Current usage in `_client.py` is minimal (sync `Client`, `Response`, `.get()`), making
+  migration straightforward. Candidates to watch:
+    - **httpxyz** — community fork of httpx (Mar 2026), drop-in replacement, stability-first philosophy, 2 maintainers.
+      Zero migration cost but very young project
+    - **niquests** — actively maintained `requests` successor with HTTP/2 and HTTP/3 support, good typing. Single
+      maintainer (bus factor). Would require rewriting `_client.py` against the `requests`-style API
+    - Decision should be made before async support work begins, as it heavily influences the async design
+- Async support (`AsyncLiquipediaClient` — depends on HTTP client evaluation above)
 - Query builder / fluent interface (`client.query("match").where(...).select(...)`) — evaluate after v1 based on usage
 - Response caching layer (local TTL cache)
 - CLI tool for quick queries

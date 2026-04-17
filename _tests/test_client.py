@@ -152,6 +152,24 @@ class TestParseResponse:
         with _make_client() as client, pytest.raises(ApiError, match="unknown wiki"):
             client.get("player", {"wiki": "badwiki"})
 
+    @respx.mock
+    def test_malformed_json_raises_error(self) -> None:
+        """Verify malformed JSON response raises LiquipediaError."""
+        respx.get(f"{BASE_URL}player").mock(
+            return_value=httpx.Response(200, content=b"not-json", headers={"content-type": "text/plain"})
+        )
+
+        with _make_client() as client, pytest.raises(LiquipediaError, match="Failed to parse API response"):
+            client.get("player", {"wiki": "dota2"})
+
+    @respx.mock
+    def test_non_dict_json_raises_error(self) -> None:
+        """Verify non-dict JSON response raises LiquipediaError."""
+        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json=["unexpected", "list"]))
+
+        with _make_client() as client, pytest.raises(LiquipediaError, match="Unexpected API response format"):
+            client.get("player", {"wiki": "dota2"})
+
 
 # === HTTP Error Handling ===
 

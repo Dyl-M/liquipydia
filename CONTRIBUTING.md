@@ -98,7 +98,7 @@ Use descriptive prefixes:
 ## Reporting Bugs & Requesting Features
 
 - Use the [issue templates](https://github.com/Dyl-M/liquipydia/issues/new/choose) provided in the repository.
-- For security vulnerabilities, follow the process described in [SECURITY.md](SECURITY.md).
+- For security vulnerabilities, follow the process described in [SECURITY.md](https://github.com/Dyl-M/liquipydia/blob/main/SECURITY.md).
 
 ## Code of Conduct
 
@@ -106,4 +106,4 @@ Be respectful and constructive. Harassment or abusive behavior will not be toler
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions will be licensed under the [MIT License](https://github.com/Dyl-M/liquipydia/blob/main/LICENSE).
