@@ -145,8 +145,6 @@ version_variables = [
 ]
 commit_message = "chore(release): v{version}"
 tag_format = "v{version}"
-build_command = false
-changelog = false
 
 [tool.semantic_release.branches.main]
 match = "main"
