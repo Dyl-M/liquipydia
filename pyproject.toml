@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "httpx==0.28.1",
-    "pydantic==2.12.5",
+    "pydantic==2.13.3",
 ]
 
 [project.urls]
@@ -38,12 +38,12 @@ Changelog = "https://github.com/Dyl-M/liquipydia/blob/main/CHANGELOG.md"
 [dependency-groups]
 dev = [
     { include-group = "test" },
-    "ruff==0.15.9",
-    "mypy==1.20.0",
+    "ruff==0.15.12",
+    "mypy==1.20.2",
 ]
 test = [
-    "pytest==9.0.2",
-    "respx==0.22.0",
+    "pytest==9.0.3",
+    "respx==0.23.1",
     "coverage==7.13.5",
 ]
 docs = [
@@ -51,7 +51,7 @@ docs = [
     "myst-parser==5.0.0",
     "sphinx==9.1.0",
     "sphinx-autobuild==2025.8.25",
-    "sphinx-autodoc-typehints==3.10.0",
+    "sphinx-autodoc-typehints==3.10.2",
     "sphinx-copybutton==0.5.2"
 ]
 
