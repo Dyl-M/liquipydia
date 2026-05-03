@@ -208,6 +208,7 @@ __marimo__/
 
 # Private ressources
 .claude/
+.remember/
 .tokens/
 _drafts/
 CLAUDE.md
