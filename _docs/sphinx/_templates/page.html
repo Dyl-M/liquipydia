@@ -1,5 +1,11 @@
 {% extends "!page.html" %}
 
+{% block extrahead %}
+{{ super() }}
+<link rel="icon" type="image/svg+xml" href="{{ pathto('_static/database-search-dark.svg', 1) }}"
+      media="(prefers-color-scheme: dark)">
+{% endblock %}
+
 {% block footer %}
 {{ super() | replace("Dylan Monfret @Dyl-M", '<a href="https://github.com/Dyl-M">Dylan Monfret @Dyl-M</a>') }}
 {% endblock %}

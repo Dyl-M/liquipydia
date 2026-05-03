@@ -58,6 +58,8 @@ intersphinx_mapping = {
 
 html_theme = "furo"
 html_title = "liquipydia"
+html_static_path = ["_static"]
+html_favicon = "_static/database-search.svg"
 
 html_theme_options = {
     "source_repository": "https://github.com/Dyl-M/liquipydia",
