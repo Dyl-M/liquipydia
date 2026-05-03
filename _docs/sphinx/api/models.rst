@@ -3,101 +3,91 @@
 Models
 ======
 
-Pydantic models for typed access to API response records. Use ``Model.model_validate(record)``
-on dicts from :class:`~liquipydia.ApiResponse`.
+Pydantic models for typed access to API response records. The client returns raw dicts inside
+:class:`~liquipydia.ApiResponse`; convert each one with ``Model.model_validate(record)``:
 
-All fields are optional (``type | None = None``) for forward compatibility. Unknown API fields
-are preserved via ``extra="allow"``.
+.. code-block:: python
+
+   from liquipydia import LiquipediaClient, Player
+
+   with LiquipediaClient("my-app") as client:
+       response = client.players.list("dota2", limit=5)
+       players = [Player.model_validate(record) for record in response.result]
+
+Conventions
+-----------
+
+- **All fields are optional** (``type | None = None``). LPDB endpoints can omit fields without
+  notice, so models never raise on missing data.
+- **Unknown fields are preserved** via ``ConfigDict(extra="allow")``. New API fields are
+  accessible on the validated model even before this library is updated.
+- **Models are standalone.** They don't reference the client or each other and can be reused for
+  any dict that follows the LPDB schema.
 
 Type aliases
 ------------
 
-These handle LPDB API quirks automatically:
+Three reusable field types handle LPDB's quirky null-encoding so consumers see clean
+``None`` / ``date`` / ``datetime`` / ``dict`` values:
 
-- **NullableDate** — converts null sentinels (``"0000-01-01"``, ``""``) to ``None``
-- **NullableDatetime** — same for datetime fields (``"0000-01-01 00:00:00"``)
-- **LpdbDict** — converts empty API lists (``[]``) to ``None`` for dict-like fields
+.. autodata:: liquipydia._models.NullableDate
+   :no-value:
 
-Base classes
-------------
+.. autodata:: liquipydia._models.NullableDatetime
+   :no-value:
 
-Most models inherit from ``_LpdbModel``, which provides common fields shared across standard
-endpoints. Team template models use ``_TeamTemplateBase`` instead (different field set).
+.. autodata:: liquipydia._models.LpdbDict
+   :no-value:
+
+A handful of fields (e.g. ``stream`` on :class:`~liquipydia.Match`, ``earningsbyyear`` on
+:class:`~liquipydia.Player`) legitimately vary between dict and list shapes. Those use an
+explicit ``dict[str, Any] | list[Any] | None`` union rather than ``LpdbDict``.
+
+Internal base classes
+---------------------
+
+The classes below are not part of the public API (they are prefixed with ``_``). They are
+documented here only to make field inheritance visible — refer to the concrete model classes for
+day-to-day use.
 
 .. autoclass:: liquipydia._models._LpdbModel
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia._models._TeamTemplateBase
-   :members:
-   :inherited-members: BaseModel
 
 Standard models
 ---------------
 
 .. autoclass:: liquipydia.Broadcaster
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Company
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Datapoint
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.ExternalMediaLink
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Match
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Placement
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Player
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Series
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.SquadPlayer
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.StandingsEntry
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.StandingsTable
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Team
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Tournament
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.Transfer
-   :members:
-   :inherited-members: BaseModel
 
 Team template models
 --------------------
 
 .. autoclass:: liquipydia.TeamTemplate
-   :members:
-   :inherited-members: BaseModel
 
 .. autoclass:: liquipydia.TeamTemplateList
-   :members:
-   :inherited-members: BaseModel
