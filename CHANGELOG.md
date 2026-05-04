@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Loosen runtime dependency ranges to `httpx >=0.28,<1` and `pydantic >=2.13,<3` so consumers can resolve a single
+  shared version alongside their other deps; CI now runs the test suite against both `highest` and `lowest-direct`
+  resolutions
+- Treat `build:` Conventional Commit prefix as patch-level release trigger in `python-semantic-release` config so
+  dependency-policy commits cut a release without manual tagging
 - Replace hardcoded version assertion in `test_version_value` with semver format regex check
 - Replace relative file links with absolute GitHub URLs in README and CONTRIBUTING to fix broken links on PyPI
 - Reformat README title heading
