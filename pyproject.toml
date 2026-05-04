@@ -141,7 +141,6 @@ fail_under = 0
 version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "liquipydia/__init__.py:__version__",
-    "liquipydia/_client.py:_VERSION",
 ]
 commit_message = "chore(release): v{version}"
 tag_format = "v{version}"

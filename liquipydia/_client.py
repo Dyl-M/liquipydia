@@ -2,6 +2,8 @@
 
 # Standard library
 from collections.abc import Iterator
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 import os
 import time
 from types import TracebackType
@@ -34,7 +36,22 @@ from liquipydia._response import ApiResponse
 
 # === Constants ===
 
-_VERSION: Final[str] = "0.1.0"
+
+def _resolve_version() -> str:
+    """Resolve the installed package version for the User-Agent header.
+
+    Returns:
+        The version reported by ``importlib.metadata`` for the ``liquipydia`` distribution, or ``"0.0.0+unknown"`` if
+        the package is being run from a source tree without an installed distribution (e.g. ``PYTHONPATH``-based
+        imports during local dev or CI bootstrap).
+    """
+    try:
+        return _pkg_version("liquipydia")
+    except PackageNotFoundError:
+        return "0.0.0+unknown"
+
+
+_VERSION: Final[str] = _resolve_version()
 _BASE_URL: Final[str] = "https://api.liquipedia.net/api/v3/"
 _ENV_API_KEY: Final[str] = "LIQUIPEDIA_API_KEY"
 _MAX_BACKOFF: Final[float] = 60.0
