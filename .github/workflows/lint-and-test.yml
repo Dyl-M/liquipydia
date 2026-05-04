@@ -59,8 +59,12 @@ jobs:
         run: uv run mypy liquipydia
 
   test:
-    name: Tests
+    name: Tests (${{ matrix.resolution }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        resolution: [ highest, lowest-direct ]
 
     steps:
       - name: Checkout repository
@@ -75,20 +79,26 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --group test
+        run: uv sync --group test --resolution ${{ matrix.resolution }}
 
-      - name: Run tests with coverage
+      - name: Run unit tests with coverage
+        run: uv run coverage run -m pytest -m "not integration"
+
+      - name: Run integration tests
+        if: matrix.resolution == 'highest'
         env:
           LPDB_API_KEY: ${{ secrets.LPDB_API_KEY }}
-        run: uv run coverage run -m pytest
+        run: uv run coverage run -a -m pytest -m integration
 
       - name: Coverage report
         run: uv run coverage report
 
       - name: Generate coverage XML
+        if: matrix.resolution == 'highest'
         run: uv run coverage xml
 
       - name: Report coverage to DeepSource
+        if: matrix.resolution == 'highest'
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: python
