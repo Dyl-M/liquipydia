@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "liquipydia"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python client library for the Liquipedia API (LPDB v3)."
 readme = "README.md"
 license = "MIT"
@@ -141,7 +141,6 @@ fail_under = 0
 version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "liquipydia/__init__.py:__version__",
-    "liquipydia/_client.py:_VERSION",
 ]
 commit_message = "chore(release): v{version}"
 tag_format = "v{version}"

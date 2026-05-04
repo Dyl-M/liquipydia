@@ -146,9 +146,9 @@ First PyPI release covering the full LPDB v3 surface.
   `lowest-direct` resolutions
 - [x] Theme-aware Lucide favicon for the docs site (`database-search.svg` light + `-dark.svg`, wired through
   `html_favicon` in `conf.py` and a `prefers-color-scheme: dark` `<link>` in `_templates/page.html`)
-- [ ] conda-forge package — recipe submitted to `conda-forge/staged-recipes#33215`; awaiting v0.1.1 on PyPI to resolve a
-  `pip check` mismatch (v0.1.0 sdist still declares the old strict pins). After merge the feedstock auto-rebuilds on
-  PyPI releases via `regro-cf-autotick-bot`
+- [ ] conda-forge package — recipe submitted to `conda-forge/staged-recipes#33215`; recipe bumped to v0.1.1 on
+  2026-05-04 once the loosened-pin sdist landed on PyPI. Awaiting conda-forge maintainer review and merge; after merge
+  the feedstock auto-rebuilds on PyPI releases via `regro-cf-autotick-bot`
 
 ## Future / Out of scope for v1
 
