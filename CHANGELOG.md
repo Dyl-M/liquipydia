@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Resolve `_client.py:_VERSION` via `importlib.metadata.version("liquipydia")` at import time instead of duplicating
+  the literal in source. The `version_variables` entry for `_client.py` is dropped from the
+  `python-semantic-release` config — only `pyproject.toml` and `liquipydia/__init__.py` need to be bumped now, and the
+  User-Agent header always reflects the actual installed package version
+
+### Fixed
+
+- User-Agent header reported `liquipydia/0.1.0` on the v0.1.1 wheel because PSR's `version_variables` regex did not
+  match `_VERSION: Final[str] = "0.1.0"` (the type annotation broke the bump). Switching `_VERSION` to
+  `importlib.metadata` resolution removes the duplicated location entirely
+
 ## [0.1.1] - 2026-05-04
 
 ### Added
