@@ -38,6 +38,13 @@ from liquipydia._response import ApiResponse
 
 
 def _resolve_version() -> str:
+    """Resolve the installed package version for the User-Agent header.
+
+    Returns:
+        The version reported by ``importlib.metadata`` for the ``liquipydia`` distribution, or ``"0.0.0+unknown"`` if
+        the package is being run from a source tree without an installed distribution (e.g. ``PYTHONPATH``-based
+        imports during local dev or CI bootstrap).
+    """
     try:
         return _pkg_version("liquipydia")
     except PackageNotFoundError:
