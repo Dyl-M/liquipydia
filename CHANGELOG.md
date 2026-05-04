@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-04
+
 ### Changed
 
 - Resolve `_client.py:_VERSION` via `importlib.metadata.version("liquipydia")` at import time instead of duplicating
   the literal in source. The `version_variables` entry for `_client.py` is dropped from the
   `python-semantic-release` config — only `pyproject.toml` and `liquipydia/__init__.py` need to be bumped now, and the
   User-Agent header always reflects the actual installed package version
+- Add a Google-style docstring to the new `_resolve_version()` helper documenting the `importlib.metadata` lookup and
+  the `PackageNotFoundError` → `"0.0.0+unknown"` fallback
 
 ### Fixed
 
@@ -213,7 +217,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.gitattributes` with LF line ending normalization
 - `CHANGELOG.md` (this file)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.1...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.2...dev
+
+[0.1.2]: https://github.com/Dyl-M/liquipydia/compare/v0.1.1...v0.1.2
 
 [0.1.1]: https://github.com/Dyl-M/liquipydia/compare/v0.1.0...v0.1.1
 
