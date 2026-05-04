@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-04
+
 ### Added
 
 - Automatic semantic release workflow (`.github/workflows/release.yml`) using `python-semantic-release` v9 — parses
@@ -14,19 +16,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `[tool.semantic_release]` configuration in `pyproject.toml` for version bumping, tagging, and release creation
 - PyPI version badge in README (auto-updates via shields.io)
 - Tests for malformed JSON and non-dict JSON API responses in `TestParseResponse`
+- Theme-aware Lucide `database-search` favicon for the Sphinx docs (`database-search.svg` light + `-dark.svg`),
+  registered via `html_static_path` / `html_favicon` and a `prefers-color-scheme: dark` `<link>` injected through
+  the Furo `extrahead` block override in `_templates/page.html`
+- Resolution matrix on the `test` job in `lint-and-test.yml` (`highest`, `lowest-direct`) with `fail-fast: false`
+  to surface breakage at either end of the supported runtime range; integration tests and DeepSource coverage upload
+  only run on `highest` to spare the live-API rate-limit budget
 
 ### Changed
 
 - Loosen runtime dependency ranges to `httpx >=0.28,<1` and `pydantic >=2.13,<3` so consumers can resolve a single
-  shared version alongside their other deps; CI now runs the test suite against both `highest` and `lowest-direct`
-  resolutions
+  shared version alongside their other deps
 - Treat `build:` Conventional Commit prefix as patch-level release trigger in `python-semantic-release` config so
   dependency-policy commits cut a release without manual tagging
-- Replace hardcoded version assertion in `test_version_value` with semver format regex check
+- Sphinx user guide rewritten against the real `LiquipediaClient` surface — `getting-started.md` now covers install,
+  authentication, the first request, and a Tuning section for `timeout` / `max_retries` / `retry_backoff_factor`;
+  `examples.md` adds a Conditions-syntax section (`!`/`<`/`>` operator prefixes, `AND`/`OR` grouping, JSON subkeys,
+  date virtual fields), a Warnings section, runnable examples for all 16 resources, and corrected output blocks
+- Sphinx API reference realigned with the current module layout — every public class is documented, private bases
+  (`_LpdbModel`, `_TeamTemplateBase`) are excluded, and resource pages reflect the
+  `Resource` / `TeamTemplateResource` / `TeamTemplateListResource` split
+- README Quick Start example expanded to mention keyword-filter operator-prefix passthrough
+  (`earnings=">10000"` → `[[earnings::>10000]]`)
+- Bump dev/test/docs groups via Dependabot (ruff, mypy, pytest, respx, sphinx-autodoc-typehints, pydantic 2.13.3)
+  and GitHub Actions (`actions/upload-pages-artifact` v4 → v5, `actions/deploy-pages` v4 → v5,
+  `actions/upload-artifact` v4 → v7, `actions/download-artifact` v4 → v8, `actions/setup-python` v5 → v6)
+- Replace hardcoded version assertion in `test_version_value` with a semver format regex check
 - Replace relative file links with absolute GitHub URLs in README and CONTRIBUTING to fix broken links on PyPI
 - Reformat README title heading
 - Update roadmap: mark v0.1.0 GitHub Release as complete, add semantic release as post-release item, expand "Future"
   section with HTTP client dependency evaluation
+
+### Fixed
+
+- Correct `python-semantic-release` v9 config — drop the invalid `build_command = false` and `changelog = false`
+  entries (PSR v9 expects strings/dicts) and pass `--no-changelog` on the CLI instead
 
 ## [0.1.0] - 2026-04-11
 
@@ -176,7 +200,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.gitattributes` with LF line ending normalization
 - `CHANGELOG.md` (this file)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.0...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.1...dev
+
+[0.1.1]: https://github.com/Dyl-M/liquipydia/compare/v0.1.0...v0.1.1
 
 [0.1.0]: https://github.com/Dyl-M/liquipydia/compare/v0.0.5...v0.1.0
 
