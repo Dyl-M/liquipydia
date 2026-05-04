@@ -78,7 +78,8 @@ with LiquipediaClient("my-app", api_key="your-api-key") as client:
         match = Match.model_validate(record)
         print(match.match2id, match.date, match.winner)
 
-    # Keyword filters — no need to write raw LPDB conditions
+    # Keyword filters — no need to write raw LPDB conditions.
+    # Operator prefixes (`!`, `<`, `>`) pass through, so `earnings=">10000"` becomes `[[earnings::>10000]]`.
     response = client.players.list("rocketleague", pagename="Zen")
 
     # Match-specific parameters (stream data)

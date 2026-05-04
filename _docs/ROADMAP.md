@@ -139,7 +139,16 @@ First PyPI release covering the full LPDB v3 surface.
     - Bumps version in `pyproject.toml`, `__init__.py`, and `_client.py` automatically
     - Commits, tags, and creates GitHub Release → triggers existing `publish.yml` → PyPI
     - `CHANGELOG.md` remains manually maintained (not managed by PSR)
-- [ ] conda-forge package (submit recipe to `conda-forge/staged-recipes`, auto-rebuilds on PyPI releases)
+    - `patch_tags = ["fix", "perf", "build"]` so dependency-policy commits trigger a patch release
+      without manual tagging
+- [x] Loosen runtime dependency ranges (`httpx >=0.28,<1`, `pydantic >=2.13,<3`) so consumers can resolve a single
+  shared version alongside their other deps; `lint-and-test.yml` runs the test suite against both `highest` and
+  `lowest-direct` resolutions
+- [x] Theme-aware Lucide favicon for the docs site (`database-search.svg` light + `-dark.svg`, wired through
+  `html_favicon` in `conf.py` and a `prefers-color-scheme: dark` `<link>` in `_templates/page.html`)
+- [ ] conda-forge package — recipe submitted to `conda-forge/staged-recipes#33215`; awaiting v0.1.1 on PyPI to resolve a
+  `pip check` mismatch (v0.1.0 sdist still declares the old strict pins). After merge the feedstock auto-rebuilds on
+  PyPI releases via `regro-cf-autotick-bot`
 
 ## Future / Out of scope for v1
 
