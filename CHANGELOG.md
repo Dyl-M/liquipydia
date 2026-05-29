@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- conda-forge package — `liquipydia` is now installable via `conda install -c conda-forge liquipydia`; install
+  instructions added to the README and the Sphinx getting-started guide
+
 ## [0.1.2] - 2026-05-04
 
 ### Changed

@@ -121,8 +121,11 @@ Typed response models for IDE autocompletion and validation. One model per data 
     - Examples per resource with output blocks
     - Changelog (included from root `CHANGELOG.md`)
     - Liquipedia-themed colors, clickable author footer
-- [x] GitHub Pages deployment workflow (`.github/workflows/docs.yml`, triggers on push to `main`)
+- [x] GitHub Pages deployment workflow (`.github/workflows/docs.yml`, deploys on push to `main`; also builds as a
+  pre-merge check on PRs to `main`/`docs` and pushes to the long-lived `docs` branch)
 - [x] CI integration tests (LPDB_API_KEY secret in GitHub Actions test job)
+- [x] Branch sync workflow (`.github/workflows/sync-branches.yml`, back-merges `main` into `dev` and `docs` on every
+  push to `main`)
 
 ## v0.1.0 — First public release
 
@@ -146,9 +149,9 @@ First PyPI release covering the full LPDB v3 surface.
   `lowest-direct` resolutions
 - [x] Theme-aware Lucide favicon for the docs site (`database-search.svg` light + `-dark.svg`, wired through
   `html_favicon` in `conf.py` and a `prefers-color-scheme: dark` `<link>` in `_templates/page.html`)
-- [ ] conda-forge package — recipe submitted to `conda-forge/staged-recipes#33215`; recipe bumped to v0.1.2 on
-  2026-05-04 to skip the v0.1.1 User-Agent regression so the first conda release ships clean. Awaiting conda-forge
-  maintainer review and merge; after merge the feedstock auto-rebuilds on PyPI releases via `regro-cf-autotick-bot`
+- [x] conda-forge package — recipe merged via `conda-forge/staged-recipes#33215` (first conda release v0.1.2, skipping
+  the v0.1.1 User-Agent regression so the first conda release shipped clean). Now installable with
+  `conda install -c conda-forge liquipydia`; the feedstock auto-rebuilds on PyPI releases via `regro-cf-autotick-bot`
 
 ## Future / Out of scope for v1
 

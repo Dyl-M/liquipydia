@@ -1,0 +1,44 @@
+name: Sync Branches
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: sync-branches
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Back-merge main into ${{ matrix.branch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [ dev, docs ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into ${{ matrix.branch }}
+        run: |
+          git checkout ${{ matrix.branch }}
+          if git merge --no-edit origin/main; then
+            git push origin HEAD
+          else
+            git merge --abort
+            echo "::error::Merge conflict syncing main into ${{ matrix.branch }}. Resolve locally: git checkout ${{ matrix.branch }} && git merge origin/main"
+            exit 1
+          fi
