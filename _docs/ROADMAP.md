@@ -121,8 +121,11 @@ Typed response models for IDE autocompletion and validation. One model per data 
     - Examples per resource with output blocks
     - Changelog (included from root `CHANGELOG.md`)
     - Liquipedia-themed colors, clickable author footer
-- [x] GitHub Pages deployment workflow (`.github/workflows/docs.yml`, triggers on push to `main`)
+- [x] GitHub Pages deployment workflow (`.github/workflows/docs.yml`, deploys on push to `main`; also builds as a
+  pre-merge check on PRs to `main`/`docs` and pushes to the long-lived `docs` branch)
 - [x] CI integration tests (LPDB_API_KEY secret in GitHub Actions test job)
+- [x] Branch sync workflow (`.github/workflows/sync-branches.yml`, back-merges `main` into `dev` and `docs` on every
+  push to `main`)
 
 ## v0.1.0 — First public release
 
