@@ -22,6 +22,12 @@ With pip:
 pip install liquipydia
 ```
 
+With conda (conda-forge):
+
+```bash
+conda install -c conda-forge liquipydia
+```
+
 Or install from source:
 
 ```bash

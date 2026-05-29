@@ -1,6 +1,7 @@
 # LIQUIPYDIA | Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
 
 [![PyPI](https://img.shields.io/pypi/v/liquipydia?logo=pypi&logoColor=white)](https://pypi.org/project/liquipydia/)
+[![conda-forge](https://img.shields.io/conda/vn/conda-forge/liquipydia?logo=anaconda&logoColor=white)](https://anaconda.org/conda-forge/liquipydia)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -49,6 +50,9 @@ uv add liquipydia
 
 # With pip
 pip install liquipydia
+
+# With conda (conda-forge)
+conda install -c conda-forge liquipydia
 ```
 
 Or install from source:
