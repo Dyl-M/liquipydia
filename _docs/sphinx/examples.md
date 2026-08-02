@@ -76,9 +76,9 @@ The same operator prefixes from the conditions syntax also work in values:
 # >, <, ! are passed through verbatim into the condition string
 response = client.tournaments.list(
     "dota2",
-    liquipediatier="1",         # equals
-    prizepool=">100000",        # greater than
-    type="!Online",             # not equals
+    liquipediatier="1",  # equals
+    prizepool=">100000",  # greater than
+    type="!Online",  # not equals
 )
 ```
 
