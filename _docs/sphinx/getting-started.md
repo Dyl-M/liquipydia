@@ -94,9 +94,9 @@ more.
 client = LiquipediaClient(
     "my-app",
     api_key="your-api-key",
-    timeout=30.0,             # per-request timeout (seconds)
-    max_retries=3,            # retries on HTTP 429 before raising RateLimitError
-    retry_backoff_factor=1.0, # base for exponential backoff between retries
+    timeout=30.0,  # per-request timeout (seconds)
+    max_retries=3,  # retries on HTTP 429 before raising RateLimitError
+    retry_backoff_factor=1.0,  # base for exponential backoff between retries
 )
 ```
 
