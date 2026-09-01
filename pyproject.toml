@@ -38,20 +38,20 @@ Changelog = "https://github.com/Dyl-M/liquipydia/blob/main/CHANGELOG.md"
 [dependency-groups]
 dev = [
     { include-group = "test" },
-    "ruff==0.16.0",
-    "mypy==2.3.0",
+    "ruff==0.16.5",
+    "mypy==2.3.1",
 ]
 test = [
     "pytest==9.1.1",
     "respx==0.23.1",
-    "coverage==7.15.2",
+    "coverage==7.16.0",
 ]
 docs = [
     "furo==2025.12.19",
     "myst-parser==5.1.0",
     "sphinx==9.1.0",
     "sphinx-autobuild==2025.8.25",
-    "sphinx-autodoc-typehints==3.13.0",
+    "sphinx-autodoc-typehints==3.13.4",
     "sphinx-copybutton==0.5.2"
 ]
 
