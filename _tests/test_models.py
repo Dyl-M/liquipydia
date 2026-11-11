@@ -27,8 +27,6 @@ from liquipydia import (
     Tournament,
     Transfer,
 )
-
-# noinspection PyProtectedMember
 from liquipydia._models import _LpdbModel, _TeamTemplateBase
 
 # All 16 public model classes.

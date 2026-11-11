@@ -33,8 +33,6 @@ from liquipydia import (
     TournamentsResource,
     TransfersResource,
 )
-
-# noinspection PyProtectedMember
 from liquipydia._resources import _is_date_type
 
 ResourceCall = Callable[[LiquipediaClient], object]
