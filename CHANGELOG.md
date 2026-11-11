@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `max`, `min`, or the date functions `year`, `month`, `day`, `hour`, `minute`, `second` on date fields only),
   otherwise `ValueError` is raised before any request. Previously LPDB answered an invalid item with HTTP 404, surfaced
   as a misleading `NotFoundError`
+- Getting-started guide: LPDB's `429` responses usually carry no `Retry-After`; after a `RateLimitError`, probe with a
+  single `max_retries=0` request rather than a tight retry loop
 
 ### Changed
 
