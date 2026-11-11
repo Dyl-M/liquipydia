@@ -1,6 +1,10 @@
 liquipydia
 ==========
 
+.. image:: ../../.github/assets/banner.png
+   :alt: liquipydia: Python client library for the Liquipedia API (LPDB v3)
+   :width: 100%
+
 **A modern, typed Python client for the Liquipedia API (LPDB v3).**
 
 liquipydia is a Python client library for the `Liquipedia <https://liquipedia.net/>`_ Database

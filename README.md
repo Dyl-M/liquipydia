@@ -1,4 +1,4 @@
-# LIQUIPYDIA | Python client library for [Liquipedia](https://liquipedia.net/) API (LPDB v3)
+![liquipydia: Python client library for the Liquipedia API (LPDB v3)](https://raw.githubusercontent.com/Dyl-M/liquipydia/main/.github/assets/banner.png)
 
 [![PyPI](https://img.shields.io/pypi/v/liquipydia?logo=pypi&logoColor=white)](https://pypi.org/project/liquipydia/)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/liquipydia?logo=anaconda&logoColor=white)](https://anaconda.org/conda-forge/liquipydia)
