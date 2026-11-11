@@ -1,6 +1,7 @@
 """Tests for the liquipydia resource layer."""
 
 # Standard library
+from collections.abc import Callable
 from urllib.parse import parse_qs
 
 # Third-party
@@ -50,6 +51,14 @@ def _get_query_params(request: httpx.Request) -> dict[str, str]:
     return {k: v[0] for k, v in parsed.items()}
 
 
+def _sent_params(endpoint: str, call: Callable[[LiquipediaClient], object]) -> dict[str, str]:
+    """Mock an empty response on an endpoint, run a call with a fresh client and return the query params it sent."""
+    respx.get(f"{BASE_URL}{endpoint}").mock(return_value=httpx.Response(200, json={"result": []}))
+    with _make_client() as client:
+        call(client)
+    return _get_query_params(respx.calls.last.request)
+
+
 # === Base Resource ===
 
 
@@ -69,59 +78,29 @@ class TestResource:
     @respx.mock
     def test_list_passes_wiki_param(self) -> None:
         """Verify wiki parameter is included in the request."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("dota2")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: client.players.list("dota2"))
         assert params["wiki"] == "dota2"
 
     @respx.mock
     def test_list_passes_conditions(self) -> None:
         """Verify conditions parameter is forwarded."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("dota2", conditions="[[name::Miracle-]]")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: client.players.list("dota2", conditions="[[name::Miracle-]]"))
         assert params["conditions"] == "[[name::Miracle-]]"
 
     @respx.mock
     def test_list_excludes_none_params(self) -> None:
         """Verify None-valued optional parameters are excluded from the request."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("dota2")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: client.players.list("dota2"))
         assert "conditions" not in params
         assert "query" not in params
         assert "order" not in params
         assert "groupby" not in params
 
     @respx.mock
-    def test_list_default_limit(self) -> None:
-        """Verify default limit is 50."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("dota2")
-
-        params = _get_query_params(respx.calls.last.request)
+    def test_list_default_paging(self) -> None:
+        """Verify default limit is 50 and default offset is 0."""
+        params = _sent_params("player", lambda client: client.players.list("dota2"))
         assert params["limit"] == "50"
-
-    @respx.mock
-    def test_list_default_offset(self) -> None:
-        """Verify default offset is 0."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("dota2")
-
-        params = _get_query_params(respx.calls.last.request)
         assert params["offset"] == "0"
 
     @respx.mock
@@ -138,10 +117,9 @@ class TestResource:
     @respx.mock
     def test_list_passes_all_params(self) -> None:
         """Verify all optional parameters are forwarded when provided."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list(
+        params = _sent_params(
+            "player",
+            lambda client: client.players.list(
                 "dota2",
                 conditions="[[name::Miracle-]]",
                 query="name,id",
@@ -149,9 +127,8 @@ class TestResource:
                 offset=5,
                 order="name ASC",
                 groupby="nationality",
-            )
-
-        params = _get_query_params(respx.calls.last.request)
+            ),
+        )
         assert params["conditions"] == "[[name::Miracle-]]"
         assert params["query"] == "name,id"
         assert params["limit"] == "10"
@@ -177,24 +154,14 @@ class TestResource:
     @respx.mock
     def test_paginate_excludes_none_params(self) -> None:
         """Verify paginate() excludes None-valued optional parameters."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            list(client.players.paginate("dota2"))
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: list(client.players.paginate("dota2")))
         assert "conditions" not in params
         assert "order" not in params
 
     @respx.mock
     def test_paginate_defaults_exclude_streams(self) -> None:
         """Verify paginate() omits rawstreams/streamurls by default."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            list(client.players.paginate("dota2"))
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: list(client.players.paginate("dota2")))
         assert "rawstreams" not in params
         assert "streamurls" not in params
 
@@ -208,23 +175,15 @@ class TestKeywordFilters:
     @respx.mock
     def test_list_keyword_filter(self) -> None:
         """Verify a single keyword filter is converted to a condition."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("rocketleague", name="Zen")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: client.players.list("rocketleague", name="Zen"))
         assert params["conditions"] == "[[name::Zen]]"
 
     @respx.mock
     def test_list_multiple_filters(self) -> None:
         """Verify multiple keyword filters are AND-joined."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("rocketleague", name="Zen", nationality="fr")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params(
+            "player", lambda client: client.players.list("rocketleague", name="Zen", nationality="fr")
+        )
         assert "[[name::Zen]]" in params["conditions"]
         assert "[[nationality::fr]]" in params["conditions"]
         assert " AND " in params["conditions"]
@@ -232,12 +191,9 @@ class TestKeywordFilters:
     @respx.mock
     def test_list_filters_with_conditions(self) -> None:
         """Verify keyword filters are AND-joined with explicit conditions."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("rocketleague", conditions="[[team::Vitality]]", name="Zen")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params(
+            "player", lambda client: client.players.list("rocketleague", conditions="[[team::Vitality]]", name="Zen")
+        )
         assert "[[team::Vitality]]" in params["conditions"]
         assert "[[name::Zen]]" in params["conditions"]
         assert " AND " in params["conditions"]
@@ -245,45 +201,25 @@ class TestKeywordFilters:
     @respx.mock
     def test_list_filter_with_operator(self) -> None:
         """Verify operator prefixes in filter values are preserved."""
-        respx.get(f"{BASE_URL}placement").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.placements.list("dota2", prizemoney=">10000")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("placement", lambda client: client.placements.list("dota2", prizemoney=">10000"))
         assert params["conditions"] == "[[prizemoney::>10000]]"
 
     @respx.mock
     def test_list_no_filters_no_conditions(self) -> None:
         """Verify no conditions param is sent when neither filters nor conditions are provided."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.players.list("rocketleague")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: client.players.list("rocketleague"))
         assert "conditions" not in params
 
     @respx.mock
     def test_paginate_keyword_filter(self) -> None:
         """Verify keyword filters work with paginate()."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            list(client.players.paginate("rocketleague", name="Zen"))
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("player", lambda client: list(client.players.paginate("rocketleague", name="Zen")))
         assert params["conditions"] == "[[name::Zen]]"
 
     @respx.mock
     def test_match_filters_with_streams(self) -> None:
         """Verify keyword filters coexist with match-specific stream params."""
-        respx.get(f"{BASE_URL}match").mock(return_value=httpx.Response(200, json={"result": []}))
-
-        with _make_client() as client:
-            client.matches.list("rocketleague", rawstreams=True, winner="1")
-
-        params = _get_query_params(respx.calls.last.request)
+        params = _sent_params("match", lambda client: client.matches.list("rocketleague", rawstreams=True, winner="1"))
         assert params["conditions"] == "[[winner::1]]"
         assert params["rawstreams"] == "true"
 
