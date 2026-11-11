@@ -5,7 +5,7 @@ from typing import Any
 from urllib.parse import parse_qs
 
 # Third-party
-import httpx
+import httpx2
 
 # Local
 from liquipydia import LiquipediaClient
@@ -20,7 +20,7 @@ def make_client(**kwargs: Any) -> LiquipediaClient:
     return LiquipediaClient(**defaults)
 
 
-def get_query_params(request: httpx.Request) -> dict[str, str]:
+def get_query_params(request: httpx2.Request) -> dict[str, str]:
     """Extract query parameters from a request as a flat dict."""
     parsed = parse_qs(str(request.url.params))
     return {k: v[0] for k, v in parsed.items()}
@@ -36,18 +36,18 @@ class MockApi:
         *outcomes: Responses or exceptions, in order; an empty ``200`` page when none are given.
     """
 
-    def __init__(self, *outcomes: httpx.Response | Exception) -> None:
+    def __init__(self, *outcomes: httpx2.Response | Exception) -> None:
         """Script the outcomes served to successive requests."""
-        self._outcomes = outcomes or (httpx.Response(200, json={"result": []}),)
-        self.requests: list[httpx.Request] = []
+        self._outcomes = outcomes or (httpx2.Response(200, json={"result": []}),)
+        self.requests: list[httpx2.Request] = []
 
     @property
-    def transport(self) -> httpx.MockTransport:
+    def transport(self) -> httpx2.MockTransport:
         """A transport serving the scripted outcomes, for clients built by hand."""
-        return httpx.MockTransport(self._handle)
+        return httpx2.MockTransport(self._handle)
 
     @property
-    def last_request(self) -> httpx.Request:
+    def last_request(self) -> httpx2.Request:
         """The most recent request received."""
         return self.requests[-1]
 
@@ -55,10 +55,10 @@ class MockApi:
         """Create a test client (see :func:`make_client`) whose requests this mock answers."""
         return make_client(transport=self.transport, **kwargs)
 
-    def _handle(self, request: httpx.Request) -> httpx.Response:
+    def _handle(self, request: httpx2.Request) -> httpx2.Response:
         """Record the request and answer it with the next scripted outcome."""
         self.requests.append(request)
         outcome = self._outcomes[min(len(self.requests), len(self._outcomes)) - 1]
         if isinstance(outcome, Exception):
             raise outcome
-        return httpx.Response(outcome.status_code, headers=outcome.headers, content=outcome.content)
+        return httpx2.Response(outcome.status_code, headers=outcome.headers, content=outcome.content)

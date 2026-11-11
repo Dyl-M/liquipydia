@@ -6,7 +6,7 @@ from importlib.metadata import PackageNotFoundError
 import re
 
 # Third-party
-import httpx
+import httpx2
 import pytest
 
 # Local
@@ -79,7 +79,7 @@ def test_resolve_version_fallback_when_not_installed(monkeypatch: pytest.MonkeyP
 
 def test_custom_transport_serves_requests() -> None:
     """Verify a transport passed to the constructor carries the client's requests."""
-    api = MockApi(httpx.Response(200, json={"result": [{"id": 1}]}))
+    api = MockApi(httpx2.Response(200, json={"result": [{"id": 1}]}))
 
     with make_client(transport=api.transport) as client:
         assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
@@ -144,7 +144,7 @@ class TestParseResponse:
     @staticmethod
     def test_successful_response() -> None:
         """Verify successful response returns result from API body."""
-        api = MockApi(httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"name": "Miracle-"}]}))
 
         with api.client() as client:
             response = client.get("player", {"wiki": "dota2"})
@@ -154,7 +154,7 @@ class TestParseResponse:
     @staticmethod
     def test_response_with_warnings() -> None:
         """Verify warnings from API body are forwarded."""
-        api = MockApi(httpx.Response(200, json={"result": [], "warning": ["deprecated field"]}))
+        api = MockApi(httpx2.Response(200, json={"result": [], "warning": ["deprecated field"]}))
 
         with api.client() as client:
             response = client.get("player", {"wiki": "dota2"})
@@ -169,30 +169,30 @@ class TestParseResponse:
     ("response", "error", "message"),
     [
         pytest.param(
-            httpx.Response(200, json={"result": [], "error": ["unknown wiki"]}),
+            httpx2.Response(200, json={"result": [], "error": ["unknown wiki"]}),
             ApiError,
             "unknown wiki",
             id="api-body-error",
         ),
         pytest.param(
-            httpx.Response(200, content=b"not-json", headers={"content-type": "text/plain"}),
+            httpx2.Response(200, content=b"not-json", headers={"content-type": "text/plain"}),
             LiquipediaError,
             "Failed to parse API response",
             id="malformed-json",
         ),
         pytest.param(
-            httpx.Response(200, json=["unexpected", "list"]),
+            httpx2.Response(200, json=["unexpected", "list"]),
             LiquipediaError,
             "Unexpected API response format",
             id="non-dict-json",
         ),
-        pytest.param(httpx.Response(403), AuthError, "Invalid or missing API key", id="http-403"),
-        pytest.param(httpx.Response(404), NotFoundError, "Requested data does not exist", id="http-404"),
-        pytest.param(httpx.Response(400, text="Bad Request"), LiquipediaError, "HTTP 400", id="http-400-lowest"),
-        pytest.param(httpx.Response(500, text="Internal Server Error"), LiquipediaError, "HTTP 500", id="http-500"),
+        pytest.param(httpx2.Response(403), AuthError, "Invalid or missing API key", id="http-403"),
+        pytest.param(httpx2.Response(404), NotFoundError, "Requested data does not exist", id="http-404"),
+        pytest.param(httpx2.Response(400, text="Bad Request"), LiquipediaError, "HTTP 400", id="http-400-lowest"),
+        pytest.param(httpx2.Response(500, text="Internal Server Error"), LiquipediaError, "HTTP 500", id="http-500"),
     ],
 )
-def test_error_mapping(response: httpx.Response, error: type[LiquipediaError], message: str) -> None:
+def test_error_mapping(response: httpx2.Response, error: type[LiquipediaError], message: str) -> None:
     """Verify each failing response maps to its exception type and message."""
     with MockApi(response).client() as client, pytest.raises(error, match=message):
         client.get("player", {"wiki": "dota2"})
@@ -201,26 +201,26 @@ def test_error_mapping(response: httpx.Response, error: type[LiquipediaError], m
 # === Retries (HTTP 429 and timeouts) ===
 
 
-def _rate_limited(retry_after: str | None = None) -> httpx.Response:
+def _rate_limited(retry_after: str | None = None) -> httpx2.Response:
     """Build a 429 response, with a Retry-After header when given."""
-    return httpx.Response(429, headers={"Retry-After": retry_after} if retry_after is not None else {})
+    return httpx2.Response(429, headers={"Retry-After": retry_after} if retry_after is not None else {})
 
 
-def _ok() -> httpx.Response:
+def _ok() -> httpx2.Response:
     """Build a successful response holding one record."""
-    return httpx.Response(200, json={"result": [{"id": 1}]})
+    return httpx2.Response(200, json={"result": [{"id": 1}]})
 
 
-def _timeout() -> httpx.ReadTimeout:
+def _timeout() -> httpx2.ReadTimeout:
     """Build the timeout raised when the server does not answer in time."""
-    return httpx.ReadTimeout("The read operation timed out")
+    return httpx2.ReadTimeout("The read operation timed out")
 
 
-def _expected_outcome(last: httpx.Response | Exception) -> AbstractContextManager[object]:
+def _expected_outcome(last: httpx2.Response | Exception) -> AbstractContextManager[object]:
     """Return what the final attempt should lead to: a retry-exhausted error, or a successful call."""
-    if isinstance(last, httpx.TimeoutException):
+    if isinstance(last, httpx2.TimeoutException):
         return pytest.raises(NetworkError, match="timed out")
-    if isinstance(last, httpx.Response) and last.status_code == 429:
+    if isinstance(last, httpx2.Response) and last.status_code == 429:
         return pytest.raises(RateLimitError)
     return nullcontext()
 
@@ -245,7 +245,7 @@ def _expected_outcome(last: httpx.Response | Exception) -> AbstractContextManage
 )
 def test_retries(
     sleeps: list[float],
-    responses: list[httpx.Response | Exception],
+    responses: list[httpx2.Response | Exception],
     max_retries: int,
     backoff_factor: float,
     expected_sleeps: list[float],
@@ -269,13 +269,13 @@ def test_retries(
 @pytest.mark.parametrize(
     "error",
     [
-        pytest.param(httpx.ConnectError("Connection refused"), id="connect-error"),
-        pytest.param(httpx.RemoteProtocolError("Server disconnected without sending a response"), id="protocol-error"),
-        pytest.param(httpx.TooManyRedirects("Exceeded maximum allowed redirects"), id="too-many-redirects"),
+        pytest.param(httpx2.ConnectError("Connection refused"), id="connect-error"),
+        pytest.param(httpx2.RemoteProtocolError("Server disconnected without sending a response"), id="protocol-error"),
+        pytest.param(httpx2.TooManyRedirects("Exceeded maximum allowed redirects"), id="too-many-redirects"),
     ],
 )
-def test_network_error_not_retried(sleeps: list[float], error: httpx.RequestError) -> None:
-    """Verify non-timeout request failures raise NetworkError at once, chained to the original httpx error."""
+def test_network_error_not_retried(sleeps: list[float], error: httpx2.RequestError) -> None:
+    """Verify non-timeout request failures raise NetworkError at once, chained to the original httpx2 error."""
     api = MockApi(error)
 
     with api.client(max_retries=3) as client, pytest.raises(NetworkError, match="Request failed") as exc_info:
@@ -288,7 +288,7 @@ def test_network_error_not_retried(sleeps: list[float], error: httpx.RequestErro
 
 
 def test_timeout_error_message_and_cause(sleeps: list[float]) -> None:
-    """Verify an exhausted timeout reports the number of attempts and keeps the original httpx exception as cause."""
+    """Verify an exhausted timeout reports the number of attempts and keeps the original httpx2 exception as cause."""
     error = _timeout()
 
     with (
@@ -319,7 +319,7 @@ class TestPagination:
     @staticmethod
     def test_paginate_single_page() -> None:
         """Verify pagination stops when a page returns fewer records than page_size."""
-        api = MockApi(httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"id": 1}, {"id": 2}]}))
 
         with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=10))
@@ -330,8 +330,8 @@ class TestPagination:
     def test_paginate_multiple_pages() -> None:
         """Verify pagination fetches multiple pages."""
         api = MockApi(
-            httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
-            httpx.Response(200, json={"result": [{"id": 3}]}),
+            httpx2.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
+            httpx2.Response(200, json={"result": [{"id": 3}]}),
         )
 
         with api.client() as client:
@@ -343,7 +343,7 @@ class TestPagination:
     @staticmethod
     def test_paginate_page_size_one() -> None:
         """Verify page_size=1 (the smallest valid size) is accepted."""
-        api = MockApi(httpx.Response(200, json={"result": [{"id": 1}]}), httpx.Response(200, json={"result": []}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"id": 1}]}), httpx2.Response(200, json={"result": []}))
 
         with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=1))
@@ -354,7 +354,7 @@ class TestPagination:
     @staticmethod
     def test_paginate_max_results() -> None:
         """Verify pagination stops at max_results."""
-        api = MockApi(httpx.Response(200, json={"result": [{"id": i} for i in range(10)]}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"id": i} for i in range(10)]}))
 
         with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=10, max_results=3))

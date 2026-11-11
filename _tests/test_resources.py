@@ -6,7 +6,7 @@ import datetime as dt
 from typing import Any
 
 # Third-party
-import httpx
+import httpx2
 import pytest
 
 # Local
@@ -350,7 +350,7 @@ class TestResourceResponses:
     @staticmethod
     def test_list_returns_api_response() -> None:
         """Verify list() returns an ApiResponse instance."""
-        api = MockApi(httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"name": "Miracle-"}]}))
 
         with api.client() as client:
             response = client.players.list("dota2")
@@ -362,8 +362,8 @@ class TestResourceResponses:
     def test_paginate_yields_records() -> None:
         """Verify paginate() yields individual records."""
         api = MockApi(
-            httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
-            httpx.Response(200, json={"result": [{"id": 3}]}),
+            httpx2.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
+            httpx2.Response(200, json={"result": [{"id": 3}]}),
         )
 
         with api.client() as client:
