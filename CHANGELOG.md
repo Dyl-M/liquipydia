@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/CODEOWNERS` requesting the owner's review on every pull request (replaces Dependabot's deprecated
   `reviewers` option)
 
+### Changed
+
+- CI: `Lint & Test` no longer runs on pushes to `dev` (already covered by its required PR checks); integration tests
+  against the live LPDB API now run on pushes to `main`, a weekly schedule and manual dispatch instead of every PR
+- CI: CodeQL runs on PRs and pushes to `main` plus its monthly schedule only (no longer on `dev`), with
+  `build-mode: none` replacing the `Autobuild` step
+
 ## [0.1.2] - 2026-05-04
 
 ### Changed

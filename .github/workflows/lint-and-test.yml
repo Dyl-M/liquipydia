@@ -1,10 +1,14 @@
 name: Lint & Test
 
 on:
+  # dev only accepts PRs that passed the required checks, so a push to dev would re-test the same code
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
     branches: [ main, dev ]
+  schedule:
+    - cron: '0 6 * * 1' # 06:00 AM UTC every Monday: integration tests against the live LPDB API
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -87,8 +91,9 @@ jobs:
       - name: Run unit tests with coverage
         run: uv run coverage run -m pytest -m "not integration"
 
+      # Live API tests check LPDB, not the PR's code: skipped on PRs to spare time and the rate-limit budget
       - name: Run integration tests
-        if: matrix.resolution == 'highest'
+        if: matrix.resolution == 'highest' && github.event_name != 'pull_request'
         env:
           LPDB_API_KEY: ${{ secrets.LPDB_API_KEY }}
         run: uv run coverage run -a -m pytest -m integration
