@@ -18,6 +18,7 @@ Features
 - **Keyword filters** — Pythonic query syntax instead of raw LPDB condition strings
 - **Rate limit handling** — automatic retries with exponential backoff on HTTP 429
 - **Context manager** — clean resource management with ``with`` statement
+- **Test helper** — ``liquipydia.testing.FakeLpdb`` serves canned records to a real client, no network or API key
 
 Quick example
 -------------
@@ -52,6 +53,7 @@ Quick example
    api/models
    api/response
    api/exceptions
+   api/testing
 
 .. toctree::
    :maxdepth: 1

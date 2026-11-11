@@ -2,6 +2,7 @@
 
 # Standard library
 from contextlib import AbstractContextManager, nullcontext
+from importlib.metadata import PackageNotFoundError
 import re
 
 # Third-party
@@ -21,6 +22,7 @@ from liquipydia import (
     RateLimitError,
     __version__,
 )
+from liquipydia._client import _resolve_version
 
 # === Fixtures ===
 
@@ -58,6 +60,38 @@ def test_request_header(client_kwargs: dict[str, object], header: str, pattern: 
         client.get("player", {"wiki": "dota2"})
 
     assert re.fullmatch(pattern, respx.calls.last.request.headers[header])
+
+
+def test_resolve_version_installed() -> None:
+    """Verify the User-Agent version comes from the installed distribution's metadata."""
+    assert _resolve_version() == __version__
+
+
+def test_resolve_version_fallback_when_not_installed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify an uninstalled source tree falls back to the "0.0.0+unknown" placeholder version."""
+
+    def not_installed(name: str) -> str:
+        """Simulate importlib.metadata finding no installed distribution."""
+        raise PackageNotFoundError(name)
+
+    monkeypatch.setattr("liquipydia._client._pkg_version", not_installed)
+
+    assert _resolve_version() == "0.0.0+unknown"
+
+
+def test_custom_transport_serves_requests() -> None:
+    """Verify a transport passed to the constructor carries the client's requests."""
+    paths: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        """Record the requested path and answer with one record."""
+        paths.append(request.url.path)
+        return httpx.Response(200, json={"result": [{"id": 1}]})
+
+    with make_client(transport=httpx.MockTransport(handler)) as client:
+        assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
+
+    assert paths == ["/api/v3/player"]
 
 
 class TestConstructor:
