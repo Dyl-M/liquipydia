@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as a misleading `NotFoundError`
 - Getting-started guide: LPDB's `429` responses usually carry no `Retry-After`; after a `RateLimitError`, probe with a
   single `max_retries=0` request rather than a tight retry loop
+- `liquipydia.testing` module: `FakeLpdb`, an in-memory LPDB serving canned records per endpoint to a real
+  `LiquipediaClient` (no network, no API key), with `limit` / `offset` paging, `query` field selection, simulated
+  failures (`fail()`: HTTP status or timeout, optionally for N requests) and a log of the requests received
+  (`RecordedRequest`); documented on a new "Testing" API page
 
 ### Changed
 
