@@ -188,7 +188,7 @@ class FakeLpdb:
     def _handle(self, request: httpx.Request) -> httpx.Response:
         """Answer one request from the client: a simulated failure, or the endpoint's records."""
         endpoint = request.url.path.removeprefix(_API_PREFIX)
-        params: dict[str, str] = {key: value for key, value in request.url.params.items()}
+        params: dict[str, str] = dict(request.url.params.items())
         self._requests.append(RecordedRequest(endpoint, params))
 
         failure = self._take_failure(endpoint)
