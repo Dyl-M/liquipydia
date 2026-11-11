@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - conda-forge package — `liquipydia` is now installable via `conda install -c conda-forge liquipydia`; install
   instructions added to the README and the Sphinx getting-started guide
+- `yamllint` step in the `Lint & Test` workflow (`.github/yamllint.yml`: syntax + duplicate keys only) to catch
+  workflow files GitHub Actions cannot parse
+- `.github/CODEOWNERS` requesting the owner's review on every pull request (replaces Dependabot's deprecated
+  `reviewers` option)
 
 ## [0.1.2] - 2026-05-04
 
