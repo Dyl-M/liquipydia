@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`RecordedRequest`); documented on a new "Testing" API page
 - `transport` keyword on `LiquipediaClient`: an optional `httpx2` transport for the underlying HTTP client (proxies,
   mounts, or serving requests in memory as `FakeLpdb` does)
+- Project banner (`.github/assets/banner.png`) at the top of the README, replacing the plain title, and of the Sphinx
+  index page; a matching image is used as the repository's social preview
 
 ### Changed
 
