@@ -185,7 +185,7 @@ class LiquipediaClient:
             retry_after = self._get_retry_after(response)
             last_retry_after = retry_after
             backoff = min(self._retry_backoff_factor * (2**attempt), _MAX_BACKOFF)
-            sleep_duration: float = max(retry_after, backoff) if retry_after > 0 else backoff
+            sleep_duration = max(retry_after, backoff)
 
             if attempt < self._max_retries:
                 time.sleep(sleep_duration)
