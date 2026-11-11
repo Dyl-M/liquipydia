@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `build-mode: none` replacing the `Autobuild` step
 - Request timeouts are now retried like HTTP 429 responses, sharing the same `max_retries` budget and exponential
   backoff
+- `CONTRIBUTING.md`: topic branches use slash prefixes (`feat/*`, `fix/*`, `refactor/*`, `test/*`, `ci/*`,
+  `chore/*` from `dev`; `doc/*` from `docs`, singular because git cannot create `docs/...` branches next to the
+  `docs` branch) instead of the dash style (`feat-*`)
 
 ### Fixed
 
