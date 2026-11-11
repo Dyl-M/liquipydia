@@ -120,6 +120,12 @@ class TestEmptyListCoercion:
         player = Player.model_validate({"links": {"twitter": "https://twitter.com/test"}})
         assert player.links == {"twitter": "https://twitter.com/test"}
 
+    @staticmethod
+    def test_empty_dict_preserved() -> None:
+        """Verify an empty dict is kept as-is (only empty lists are coerced)."""
+        player = Player.model_validate({"links": {}})
+        assert player.links == {}
+
 
 # === Date Normalization ===
 

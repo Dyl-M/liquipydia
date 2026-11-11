@@ -114,6 +114,17 @@ class TestResource:
         assert params["limit"] == "50"
 
     @respx.mock
+    def test_list_default_offset(self) -> None:
+        """Verify default offset is 0."""
+        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
+
+        with _make_client() as client:
+            client.players.list("dota2")
+
+        params = _get_query_params(respx.calls.last.request)
+        assert params["offset"] == "0"
+
+    @respx.mock
     def test_list_returns_api_response(self) -> None:
         """Verify list() returns an ApiResponse instance."""
         respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
@@ -174,6 +185,18 @@ class TestResource:
         params = _get_query_params(respx.calls.last.request)
         assert "conditions" not in params
         assert "order" not in params
+
+    @respx.mock
+    def test_paginate_defaults_exclude_streams(self) -> None:
+        """Verify paginate() omits rawstreams/streamurls by default."""
+        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
+
+        with _make_client() as client:
+            list(client.players.paginate("dota2"))
+
+        params = _get_query_params(respx.calls.last.request)
+        assert "rawstreams" not in params
+        assert "streamurls" not in params
 
 
 # === Keyword Filters ===

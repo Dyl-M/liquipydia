@@ -201,6 +201,14 @@ class TestHttpErrors:
         with _make_client() as client, pytest.raises(LiquipediaError, match="HTTP 500"):
             client.get("player", {"wiki": "dota2"})
 
+    @respx.mock
+    def test_400_raises_liquipedia_error(self) -> None:
+        """Verify HTTP 400 (lowest error status) raises LiquipediaError."""
+        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(400, text="Bad Request"))
+
+        with _make_client() as client, pytest.raises(LiquipediaError, match="HTTP 400"):
+            client.get("player", {"wiki": "dota2"})
+
 
 # === Rate Limiting ===
 
@@ -242,8 +250,10 @@ class TestRateLimiting:
         assert exc_info.value.retry_after == 42
 
     @respx.mock
-    def test_429_non_numeric_retry_after(self) -> None:
+    def test_429_non_numeric_retry_after(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify non-numeric Retry-After header falls back to computed backoff."""
+        sleeps: list[float] = []
+        monkeypatch.setattr("liquipydia._client.time.sleep", sleeps.append)
         route = respx.get(f"{BASE_URL}player")
         route.side_effect = [
             httpx.Response(429, headers={"Retry-After": "not-a-number"}),
@@ -254,6 +264,35 @@ class TestRateLimiting:
             response = client.get("player", {"wiki": "dota2"})
 
         assert response.result == [{"id": 1}]
+        assert sleeps == [0.0]
+
+    @respx.mock
+    def test_429_backoff_doubles_per_attempt(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Verify the backoff doubles on each retry and no sleep follows the last attempt."""
+        sleeps: list[float] = []
+        monkeypatch.setattr("liquipydia._client.time.sleep", sleeps.append)
+        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(429))
+
+        with _make_client(max_retries=3, retry_backoff_factor=1.0) as client, pytest.raises(RateLimitError):
+            client.get("player", {"wiki": "dota2"})
+
+        assert sleeps == [1.0, 2.0, 4.0]
+
+    @respx.mock
+    def test_429_retry_after_wins_over_shorter_backoff(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Verify a Retry-After longer than the backoff is the wait used."""
+        sleeps: list[float] = []
+        monkeypatch.setattr("liquipydia._client.time.sleep", sleeps.append)
+        route = respx.get(f"{BASE_URL}player")
+        route.side_effect = [
+            httpx.Response(429, headers={"Retry-After": "5"}),
+            httpx.Response(200, json={"result": []}),
+        ]
+
+        with _make_client(max_retries=1, retry_backoff_factor=1.0) as client:
+            client.get("player", {"wiki": "dota2"})
+
+        assert sleeps == [5]
 
 
 # === Pagination ===
@@ -285,6 +324,23 @@ class TestPagination:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=2))
 
         assert records == [{"id": 1}, {"id": 2}, {"id": 3}]
+        assert route.call_count == 2
+        offsets = [route.calls[i].request.url.params["offset"] for i in range(2)]
+        assert offsets == ["0", "2"]
+
+    @respx.mock
+    def test_paginate_page_size_one(self) -> None:
+        """Verify page_size=1 (the smallest valid size) is accepted."""
+        route = respx.get(f"{BASE_URL}player")
+        route.side_effect = [
+            httpx.Response(200, json={"result": [{"id": 1}]}),
+            httpx.Response(200, json={"result": []}),
+        ]
+
+        with _make_client() as client:
+            records = list(client.paginate("player", {"wiki": "dota2"}, page_size=1))
+
+        assert records == [{"id": 1}]
         assert route.call_count == 2
 
     @respx.mock
