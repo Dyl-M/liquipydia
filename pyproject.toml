@@ -24,7 +24,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "httpx>=0.28,<1",
+    "httpx2>=2.16,<3",
     "pydantic>=2.13,<3",
 ]
 
@@ -43,7 +43,6 @@ dev = [
 ]
 test = [
     "pytest==9.2.0",
-    "respx==0.23.1",
     "coverage==7.17.0",
 ]
 docs = [

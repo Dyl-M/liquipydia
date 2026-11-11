@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LiquipediaClient` (no network, no API key), with `limit` / `offset` paging, `query` field selection, simulated
   failures (`fail()`: HTTP status or timeout, optionally for N requests) and a log of the requests received
   (`RecordedRequest`); documented on a new "Testing" API page
-- `transport` keyword on `LiquipediaClient`: an optional `httpx` transport for the underlying HTTP client (proxies,
+- `transport` keyword on `LiquipediaClient`: an optional `httpx2` transport for the underlying HTTP client (proxies,
   mounts, or serving requests in memory as `FakeLpdb` does)
 
 ### Changed
@@ -40,12 +40,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CONTRIBUTING.md`: topic branches use slash prefixes (`feat/*`, `fix/*`, `refactor/*`, `test/*`, `ci/*`,
   `chore/*` from `dev`; `doc/*` from `docs`, singular because git cannot create `docs/...` branches next to the
   `docs` branch) instead of the dash style (`feat-*`)
+- HTTP client: the runtime dependency moves from `httpx` (`>=0.28,<1`, unmaintained since its last release in November
+  2024) to [`httpx2`](https://github.com/pydantic/httpx2) (`>=2.16,<3`), Pydantic's maintained fork of httpx 0.28.1,
+  which brings `httpcore2` instead of `httpcore`. Visible effects: `NetworkError.__cause__` is now an `httpx2`
+  exception, and TLS certificates are verified against the operating system's trust store (`truststore`) instead of
+  the `certifi` bundle by default
+- Tests: `respx` (which cannot mock httpx2) is replaced by a local helper mocking requests through the client's
+  `transport` keyword; the `test` dependency group no longer includes `respx`
 
 ### Fixed
 
-- Network failures no longer escape as raw `httpx` exceptions: timeouts (once retries are exhausted), connection and
-  protocol errors are raised as the new `NetworkError` (a `LiquipediaError` subclass, exported from `liquipydia`),
-  chained to the original `httpx` error, so `except LiquipediaError` covers every failed request (#32)
+- Network failures no longer escape as raw HTTP client exceptions: timeouts (once retries are exhausted), connection
+  and protocol errors are raised as the new `NetworkError` (a `LiquipediaError` subclass, exported from `liquipydia`),
+  chained to the original exception, so `except LiquipediaError` covers every failed request (#32)
 
 ## [0.1.2] - 2026-05-04
 

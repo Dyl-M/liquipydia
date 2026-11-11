@@ -7,7 +7,7 @@ liquipydia is a Python client library for the `Liquipedia <https://liquipedia.ne
 (LPDB) REST API v3, covering all 16 data types (matches, tournaments, teams, players, transfers,
 and more).
 
-Built with `httpx <https://www.python-httpx.org/>`_ and `pydantic <https://docs.pydantic.dev/>`_.
+Built with `httpx2 <https://github.com/pydantic/httpx2>`_ and `pydantic <https://docs.pydantic.dev/>`_.
 
 Features
 --------

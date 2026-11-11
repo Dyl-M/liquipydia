@@ -17,7 +17,7 @@
 **`liquipydia`** aims to be a modern, typed Python wrapper for the Liquipedia Database (LPDB) REST API v3, covering all
 16 data types (matches, tournaments, teams, players, transfers, and more).
 
-Built with [`httpx`](https://www.python-httpx.org/) and [`pydantic`](https://docs.pydantic.dev/).
+Built with [`httpx2`](https://github.com/pydantic/httpx2) and [`pydantic`](https://docs.pydantic.dev/).
 
 > **Status:** Beta — see the [Roadmap](https://github.com/Dyl-M/liquipydia/blob/main/_docs/ROADMAP.md) for progress.
 

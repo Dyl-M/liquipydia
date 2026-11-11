@@ -10,7 +10,7 @@ from types import TracebackType
 from typing import Any, Final, Self
 
 # Third-party
-import httpx
+import httpx2
 
 # Local
 from liquipydia._exceptions import (
@@ -76,8 +76,8 @@ class LiquipediaClient:
         timeout: Request timeout in seconds.
         max_retries: Maximum number of retries on HTTP 429 responses and request timeouts.
         retry_backoff_factor: Base factor for exponential backoff on retries.
-        transport: Custom ``httpx`` transport for the underlying HTTP client (advanced: proxies, mounts, or serving
-            requests in memory as :class:`liquipydia.testing.FakeLpdb` does). ``None`` uses httpx's default.
+        transport: Custom ``httpx2`` transport for the underlying HTTP client (advanced: proxies, mounts, or serving
+            requests in memory as :class:`liquipydia.testing.FakeLpdb` does). ``None`` uses httpx2's default.
 
     Examples:
         >>> with LiquipediaClient("my-app", api_key="secret") as client:
@@ -111,7 +111,7 @@ class LiquipediaClient:
         timeout: float = 30.0,
         max_retries: int = 3,
         retry_backoff_factor: float = 1.0,
-        transport: httpx.BaseTransport | None = None,
+        transport: httpx2.BaseTransport | None = None,
     ) -> None:
         self._max_retries = max_retries
         self._retry_backoff_factor = retry_backoff_factor
@@ -126,7 +126,7 @@ class LiquipediaClient:
         if resolved_key:
             headers["Authorization"] = f"Apikey {resolved_key}"
 
-        self._http = httpx.Client(base_url=_BASE_URL, headers=headers, timeout=timeout, transport=transport)
+        self._http = httpx2.Client(base_url=_BASE_URL, headers=headers, timeout=timeout, transport=transport)
 
         # --- Resources ---
         self.broadcasters = BroadcastersResource(self)
@@ -195,12 +195,12 @@ class LiquipediaClient:
 
             try:
                 response = self._http.get(endpoint, params=params)
-            except httpx.TimeoutException as exc:
+            except httpx2.TimeoutException as exc:
                 if is_last_attempt:
                     raise NetworkError(f"Request timed out after {attempt + 1} attempt(s): {exc}") from exc
                 time.sleep(self._backoff(attempt))
                 continue
-            except httpx.RequestError as exc:
+            except httpx2.RequestError as exc:
                 raise NetworkError(f"Request failed: {exc}") from exc
 
             if response.status_code != 429:
@@ -225,11 +225,11 @@ class LiquipediaClient:
         return min(self._retry_backoff_factor * (2.0**attempt), _MAX_BACKOFF)
 
     @staticmethod
-    def _parse_response(response: httpx.Response) -> ApiResponse:
+    def _parse_response(response: httpx2.Response) -> ApiResponse:
         """Parse an HTTP response into an ApiResponse.
 
         Args:
-            response: The raw httpx response.
+            response: The raw httpx2 response.
 
         Returns:
             Parsed API response.
@@ -318,7 +318,7 @@ class LiquipediaClient:
     # --- Helpers ---
 
     @staticmethod
-    def _get_retry_after(response: httpx.Response) -> int:
+    def _get_retry_after(response: httpx2.Response) -> int:
         """Extract the Retry-After header value from a response.
 
         Args:

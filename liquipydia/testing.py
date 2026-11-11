@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 
 # Third-party
-import httpx
+import httpx2
 
 # Local
 from liquipydia._client import LiquipediaClient
@@ -164,7 +164,7 @@ class FakeLpdb:
             api_key="fake-api-key",
             max_retries=max_retries,
             retry_backoff_factor=retry_backoff_factor,
-            transport=httpx.MockTransport(self._handle),
+            transport=httpx2.MockTransport(self._handle),
         )
 
     # --- Inspection ---
@@ -185,7 +185,7 @@ class FakeLpdb:
                 del self._failures[endpoint]
         return failure
 
-    def _handle(self, request: httpx.Request) -> httpx.Response:
+    def _handle(self, request: httpx2.Request) -> httpx2.Response:
         """Answer one request from the client: a simulated failure, or the endpoint's records."""
         endpoint = request.url.path.removeprefix(_API_PREFIX)
         params: dict[str, str] = dict(request.url.params.items())
@@ -194,8 +194,8 @@ class FakeLpdb:
         failure = self._take_failure(endpoint)
         if failure is not None:
             if failure.status is None:
-                raise httpx.ReadTimeout("Simulated timeout (FakeLpdb)", request=request)
-            return httpx.Response(failure.status, json={"error": [f"Simulated HTTP {failure.status}"]})
+                raise httpx2.ReadTimeout("Simulated timeout (FakeLpdb)", request=request)
+            return httpx2.Response(failure.status, json={"error": [f"Simulated HTTP {failure.status}"]})
 
         records = self._records.get(endpoint, [])
         if "limit" in params:  # standard endpoints always send limit and offset; team template ones neither
@@ -205,7 +205,7 @@ class FakeLpdb:
         query = params.get("query")
         if query:
             records = [_project(record, query) for record in records]
-        return httpx.Response(200, json={"result": records})
+        return httpx2.Response(200, json={"result": records})
 
 
 # === Helpers ===

@@ -6,12 +6,11 @@ import datetime as dt
 from typing import Any
 
 # Third-party
-import httpx
+import httpx2
 import pytest
-import respx
 
 # Local
-from _tests._helpers import BASE_URL, get_query_params, make_client
+from _tests._helpers import API_PATH, MockApi, get_query_params, make_client
 from liquipydia import (
     ApiResponse,
     BroadcastersResource,
@@ -222,24 +221,22 @@ SENT_PARAMS_CASES = [
 ]
 
 
-@respx.mock
 @pytest.mark.parametrize(("endpoint", "call", "expected"), SENT_PARAMS_CASES)
 def test_sent_params(endpoint: str, call: ResourceCall, expected: dict[str, str | None]) -> None:
     """Verify each call hits its endpoint and sends the expected query params (None = absent)."""
-    route = respx.get(f"{BASE_URL}{endpoint}").mock(return_value=httpx.Response(200, json={"result": []}))
+    api = MockApi()
 
-    with make_client() as client:
+    with api.client() as client:
         call(client)
 
-    assert route.called
-    params = get_query_params(respx.calls.last.request)
+    assert api.last_request.url.path == f"{API_PATH}{endpoint}"
+    params = get_query_params(api.last_request)
     assert {key: params.get(key) for key in expected} == expected
 
 
 # === Client-Side Validation (filter keys and query items) ===
 
 
-@respx.mock
 @pytest.mark.parametrize(
     ("call", "message"),
     [
@@ -319,12 +316,12 @@ def test_sent_params(endpoint: str, call: ResourceCall, expected: dict[str, str 
 )
 def test_rejects_invalid_input(call: ResourceCall, message: str) -> None:
     """Verify invalid filter keys and query items raise ValueError before any request is sent."""
-    route = respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
+    api = MockApi()
 
-    with make_client() as client, pytest.raises(ValueError, match=message):
+    with api.client() as client, pytest.raises(ValueError, match=message):
         call(client)
 
-    assert not route.called
+    assert api.requests == []
 
 
 @pytest.mark.parametrize(
@@ -350,31 +347,30 @@ def test_is_date_type(annotation: object, expected: bool) -> None:
 class TestResourceResponses:
     """Tests for what the base Resource methods return."""
 
-    @respx.mock
-    def test_list_returns_api_response(self) -> None:
+    @staticmethod
+    def test_list_returns_api_response() -> None:
         """Verify list() returns an ApiResponse instance."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
+        api = MockApi(httpx2.Response(200, json={"result": [{"name": "Miracle-"}]}))
 
-        with make_client() as client:
+        with api.client() as client:
             response = client.players.list("dota2")
 
         assert isinstance(response, ApiResponse)
         assert response.result == [{"name": "Miracle-"}]
 
-    @respx.mock
-    def test_paginate_yields_records(self) -> None:
+    @staticmethod
+    def test_paginate_yields_records() -> None:
         """Verify paginate() yields individual records."""
-        route = respx.get(f"{BASE_URL}player")
-        route.side_effect = [
-            httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
-            httpx.Response(200, json={"result": [{"id": 3}]}),
-        ]
+        api = MockApi(
+            httpx2.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
+            httpx2.Response(200, json={"result": [{"id": 3}]}),
+        )
 
-        with make_client() as client:
+        with api.client() as client:
             records = list(client.players.paginate("dota2", page_size=2))
 
         assert records == [{"id": 1}, {"id": 2}, {"id": 3}]
-        assert route.call_count == 2
+        assert len(api.requests) == 2
 
 
 # === Client Resource Attributes ===
