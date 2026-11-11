@@ -153,6 +153,20 @@ First PyPI release covering the full LPDB v3 surface.
   the v0.1.1 User-Agent regression so the first conda release shipped clean). Now installable with
   `conda install -c conda-forge liquipydia`; the feedstock auto-rebuilds on PyPI releases via `regro-cf-autotick-bot`
 
+## v0.2.0 — Maintained HTTP client, typed failures and testing support
+
+- [x] Switch the HTTP client from `httpx` to `httpx2` (`>=2.16,<3`), Pydantic's maintained fork (see the decision below)
+- [x] Wrap every network failure in `NetworkError` and retry timeouts with the 429 retry budget (#32)
+- [x] Validate `query` items client-side against the resource's model (fields, LPDB functions, date-only functions)
+- [x] `liquipydia.testing.FakeLpdb` in-memory LPDB for testing client code, and the `transport` keyword on
+  `LiquipediaClient`
+- [x] Test suite: mutation testing pass, parametrized tables, 100% branch coverage, `respx` replaced by mocking through
+  `transport`
+- [x] CI: workflow YAML linting, `CODEOWNERS`, no redundant runs on `dev`, live API tests off PRs
+- [x] Project banner (README, docs index) and social preview
+- [ ] conda-forge feedstock: replace `httpx >=0.28,<1` with `httpx2 >=2.16,<3` in the `run` requirements (manual, the
+  version bot does not change dependencies)
+
 ## Future / Out of scope for v1
 
 - [x] HTTP client dependency — **decided (v0.2.0): switched from `httpx` to
