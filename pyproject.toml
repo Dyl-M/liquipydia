@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "liquipydia"
-version = "0.1.2"
+version = "0.2.0"
 description = "Python client library for the Liquipedia API (LPDB v3)."
 readme = "README.md"
 license = "MIT"
