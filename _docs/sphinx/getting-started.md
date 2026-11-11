@@ -101,7 +101,10 @@ client = LiquipediaClient(
 ```
 
 The retry loop honours the API's `Retry-After` header when present and otherwise uses exponential
-backoff capped at 60 seconds. Timeouts are retried the same way, from the same `max_retries`
+backoff capped at 60 seconds. In practice LPDB's rate limit is undocumented and its `429` responses
+usually carry no `Retry-After`, so the backoff decides the wait; retrying during a lockout can
+prolong it, so after a `RateLimitError` prefer probing with a single `max_retries=0` request over a
+tight retry loop. Timeouts are retried the same way, from the same `max_retries`
 budget. Set `max_retries=0` to disable automatic retrying and let your code handle
 `RateLimitError` and `NetworkError` directly.
 

@@ -117,6 +117,17 @@ for record in response.result:
 (`year::birthdate`). The result field name becomes `sum_prizemoney`, `year_birthdate`, etc.
 ```
 
+```{note}
+`query` items are validated before the request is sent, like keyword filter keys: each field must
+exist on the resource's Pydantic model, and a `function::` prefix must be one of `count`, `sum`,
+`avg`, `max`, `min`, `year`, `month`, `day`, `hour`, `minute`, `second`, with the date functions
+(`year` … `second`) applied to a date field only. Anything else raises `ValueError` listing the
+valid names. Without this check, LPDB answers an invalid item with HTTP 404, which would surface as
+a misleading `NotFoundError`. Field and function names are case-insensitive, as in LPDB. Spaces
+are tolerated around comma-separated items (`"pagename, name"`) but not around `::`, which LPDB
+rejects. The string is sent unchanged. JSON subkeys (`extradata_key`) work in `conditions` only.
+```
+
 ### Ordering and grouping
 
 `order` is SQL-style; use `ASC` / `DESC` and chain with commas:
