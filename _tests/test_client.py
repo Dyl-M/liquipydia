@@ -8,10 +8,9 @@ import re
 # Third-party
 import httpx
 import pytest
-import respx
 
 # Local
-from _tests._helpers import BASE_URL, make_client
+from _tests._helpers import API_PATH, MockApi, make_client
 from liquipydia import (
     ApiError,
     AuthError,
@@ -38,7 +37,6 @@ def sleeps(monkeypatch: pytest.MonkeyPatch) -> list[float]:
 # === Constructor & Headers ===
 
 
-@respx.mock
 @pytest.mark.parametrize(
     ("client_kwargs", "header", "pattern"),
     [
@@ -54,12 +52,12 @@ def sleeps(monkeypatch: pytest.MonkeyPatch) -> list[float]:
 )
 def test_request_header(client_kwargs: dict[str, object], header: str, pattern: str) -> None:
     """Verify the headers the client sends on every request."""
-    respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
+    api = MockApi()
 
-    with make_client(**client_kwargs) as client:
+    with api.client(**client_kwargs) as client:
         client.get("player", {"wiki": "dota2"})
 
-    assert re.fullmatch(pattern, respx.calls.last.request.headers[header])
+    assert re.fullmatch(pattern, api.last_request.headers[header])
 
 
 def test_resolve_version_installed() -> None:
@@ -81,32 +79,27 @@ def test_resolve_version_fallback_when_not_installed(monkeypatch: pytest.MonkeyP
 
 def test_custom_transport_serves_requests() -> None:
     """Verify a transport passed to the constructor carries the client's requests."""
-    paths: list[str] = []
+    api = MockApi(httpx.Response(200, json={"result": [{"id": 1}]}))
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        """Record the requested path and answer with one record."""
-        paths.append(request.url.path)
-        return httpx.Response(200, json={"result": [{"id": 1}]})
-
-    with make_client(transport=httpx.MockTransport(handler)) as client:
+    with make_client(transport=api.transport) as client:
         assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
 
-    assert paths == ["/api/v3/player"]
+    assert [request.url.path for request in api.requests] == [f"{API_PATH}player"]
 
 
 class TestConstructor:
     """Tests for LiquipediaClient API key resolution."""
 
-    @respx.mock
-    def test_authorization_header_absent(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    @staticmethod
+    def test_authorization_header_absent(monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify Authorization header is absent when no API key is provided."""
         monkeypatch.delenv("LIQUIPEDIA_API_KEY", raising=False)
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
+        api = MockApi()
 
-        with LiquipediaClient("test-app", api_key=None) as client:
+        with LiquipediaClient("test-app", api_key=None, transport=api.transport) as client:
             client.get("player", {"wiki": "dota2"})
 
-        assert "Authorization" not in respx.calls.last.request.headers
+        assert "Authorization" not in api.last_request.headers
 
     @staticmethod
     def test_api_key_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -148,24 +141,22 @@ class TestContextManager:
 class TestParseResponse:
     """Tests for _parse_response on successful responses."""
 
-    @respx.mock
-    def test_successful_response(self) -> None:
+    @staticmethod
+    def test_successful_response() -> None:
         """Verify successful response returns result from API body."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
+        api = MockApi(httpx.Response(200, json={"result": [{"name": "Miracle-"}]}))
 
-        with make_client() as client:
+        with api.client() as client:
             response = client.get("player", {"wiki": "dota2"})
 
         assert response.result == [{"name": "Miracle-"}]
 
-    @respx.mock
-    def test_response_with_warnings(self) -> None:
+    @staticmethod
+    def test_response_with_warnings() -> None:
         """Verify warnings from API body are forwarded."""
-        respx.get(f"{BASE_URL}player").mock(
-            return_value=httpx.Response(200, json={"result": [], "warning": ["deprecated field"]})
-        )
+        api = MockApi(httpx.Response(200, json={"result": [], "warning": ["deprecated field"]}))
 
-        with make_client() as client:
+        with api.client() as client:
             response = client.get("player", {"wiki": "dota2"})
 
         assert response.warnings == ["deprecated field"]
@@ -174,7 +165,6 @@ class TestParseResponse:
 # === Error Mapping ===
 
 
-@respx.mock
 @pytest.mark.parametrize(
     ("response", "error", "message"),
     [
@@ -204,9 +194,7 @@ class TestParseResponse:
 )
 def test_error_mapping(response: httpx.Response, error: type[LiquipediaError], message: str) -> None:
     """Verify each failing response maps to its exception type and message."""
-    respx.get(f"{BASE_URL}player").mock(return_value=response)
-
-    with make_client() as client, pytest.raises(error, match=message):
+    with MockApi(response).client() as client, pytest.raises(error, match=message):
         client.get("player", {"wiki": "dota2"})
 
 
@@ -237,7 +225,6 @@ def _expected_outcome(last: httpx.Response | Exception) -> AbstractContextManage
     return nullcontext()
 
 
-@respx.mock
 @pytest.mark.parametrize(
     ("responses", "max_retries", "backoff_factor", "expected_sleeps"),
     [
@@ -267,20 +254,18 @@ def test_retries(
 
     A last 429 means RateLimitError and a last timeout means NetworkError (retries exhausted); anything else succeeds.
     """
-    route = respx.get(f"{BASE_URL}player")
-    route.side_effect = responses
+    api = MockApi(*responses)
 
     with (
         _expected_outcome(responses[-1]),
-        make_client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client,
+        api.client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client,
     ):
         assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
 
     assert sleeps == expected_sleeps
-    assert route.call_count == len(responses)
+    assert len(api.requests) == len(responses)
 
 
-@respx.mock
 @pytest.mark.parametrize(
     "error",
     [
@@ -291,25 +276,25 @@ def test_retries(
 )
 def test_network_error_not_retried(sleeps: list[float], error: httpx.RequestError) -> None:
     """Verify non-timeout request failures raise NetworkError at once, chained to the original httpx error."""
-    route = respx.get(f"{BASE_URL}player")
-    route.side_effect = error
+    api = MockApi(error)
 
-    with make_client(max_retries=3) as client, pytest.raises(NetworkError, match="Request failed") as exc_info:
+    with api.client(max_retries=3) as client, pytest.raises(NetworkError, match="Request failed") as exc_info:
         client.get("player", {"wiki": "dota2"})
 
     assert exc_info.value.__cause__ is error
     assert isinstance(exc_info.value, LiquipediaError)
-    assert route.call_count == 1
+    assert len(api.requests) == 1
     assert sleeps == []
 
 
-@respx.mock
 def test_timeout_error_message_and_cause(sleeps: list[float]) -> None:
     """Verify an exhausted timeout reports the number of attempts and keeps the original httpx exception as cause."""
     error = _timeout()
-    respx.get(f"{BASE_URL}player").side_effect = error
 
-    with make_client(max_retries=1, retry_backoff_factor=0.0) as client, pytest.raises(NetworkError) as exc_info:
+    with (
+        MockApi(error).client(max_retries=1, retry_backoff_factor=0.0) as client,
+        pytest.raises(NetworkError) as exc_info,
+    ):
         client.get("player", {"wiki": "dota2"})
 
     assert exc_info.value.message.startswith("Request timed out after 2 attempt(s): ")
@@ -317,12 +302,9 @@ def test_timeout_error_message_and_cause(sleeps: list[float]) -> None:
     assert sleeps == [0.0]
 
 
-@respx.mock
 def test_429_error_carries_retry_after() -> None:
     """Verify RateLimitError carries the Retry-After value."""
-    respx.get(f"{BASE_URL}player").mock(return_value=_rate_limited("42"))
-
-    with make_client(max_retries=0) as client, pytest.raises(RateLimitError) as exc_info:
+    with MockApi(_rate_limited("42")).client(max_retries=0) as client, pytest.raises(RateLimitError) as exc_info:
         client.get("player", {"wiki": "dota2"})
 
     assert exc_info.value.retry_after == 42
@@ -334,68 +316,57 @@ def test_429_error_carries_retry_after() -> None:
 class TestPagination:
     """Tests for the paginate method."""
 
-    @respx.mock
-    def test_paginate_single_page(self) -> None:
+    @staticmethod
+    def test_paginate_single_page() -> None:
         """Verify pagination stops when a page returns fewer records than page_size."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}))
+        api = MockApi(httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}))
 
-        with make_client() as client:
+        with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=10))
 
         assert records == [{"id": 1}, {"id": 2}]
 
-    @respx.mock
-    def test_paginate_multiple_pages(self) -> None:
+    @staticmethod
+    def test_paginate_multiple_pages() -> None:
         """Verify pagination fetches multiple pages."""
-        route = respx.get(f"{BASE_URL}player")
-        route.side_effect = [
+        api = MockApi(
             httpx.Response(200, json={"result": [{"id": 1}, {"id": 2}]}),
             httpx.Response(200, json={"result": [{"id": 3}]}),
-        ]
+        )
 
-        with make_client() as client:
+        with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=2))
 
         assert records == [{"id": 1}, {"id": 2}, {"id": 3}]
-        assert route.call_count == 2
-        offsets = [route.calls[i].request.url.params["offset"] for i in range(2)]
-        assert offsets == ["0", "2"]
+        assert [request.url.params["offset"] for request in api.requests] == ["0", "2"]
 
-    @respx.mock
-    def test_paginate_page_size_one(self) -> None:
+    @staticmethod
+    def test_paginate_page_size_one() -> None:
         """Verify page_size=1 (the smallest valid size) is accepted."""
-        route = respx.get(f"{BASE_URL}player")
-        route.side_effect = [
-            httpx.Response(200, json={"result": [{"id": 1}]}),
-            httpx.Response(200, json={"result": []}),
-        ]
+        api = MockApi(httpx.Response(200, json={"result": [{"id": 1}]}), httpx.Response(200, json={"result": []}))
 
-        with make_client() as client:
+        with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=1))
 
         assert records == [{"id": 1}]
-        assert route.call_count == 2
+        assert len(api.requests) == 2
 
-    @respx.mock
-    def test_paginate_max_results(self) -> None:
+    @staticmethod
+    def test_paginate_max_results() -> None:
         """Verify pagination stops at max_results."""
-        respx.get(f"{BASE_URL}player").mock(
-            return_value=httpx.Response(200, json={"result": [{"id": i} for i in range(10)]})
-        )
+        api = MockApi(httpx.Response(200, json={"result": [{"id": i} for i in range(10)]}))
 
-        with make_client() as client:
+        with api.client() as client:
             records = list(client.paginate("player", {"wiki": "dota2"}, page_size=10, max_results=3))
 
         assert len(records) == 3
 
-    @respx.mock
-    def test_paginate_does_not_mutate_params(self) -> None:
+    @staticmethod
+    def test_paginate_does_not_mutate_params() -> None:
         """Verify pagination does not mutate the caller's params dict."""
-        respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
-
         params = {"wiki": "dota2"}
 
-        with make_client() as client:
+        with MockApi().client() as client:
             list(client.paginate("player", params, page_size=10))
 
         assert params == {"wiki": "dota2"}
