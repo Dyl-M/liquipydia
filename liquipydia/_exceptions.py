@@ -31,3 +31,11 @@ class RateLimitError(LiquipediaError):
 
 class ApiError(LiquipediaError):
     """Raised when the API returns an error in the response body."""
+
+
+class NetworkError(LiquipediaError):
+    """Raised when a request fails before any response is received.
+
+    Wraps the underlying HTTP client error (timeout, connection or protocol error), which stays available as
+    ``__cause__``. Timeouts are retried like HTTP 429 responses before this is raised.
+    """
