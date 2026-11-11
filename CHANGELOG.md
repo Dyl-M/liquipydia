@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LiquipediaClient` (no network, no API key), with `limit` / `offset` paging, `query` field selection, simulated
   failures (`fail()`: HTTP status or timeout, optionally for N requests) and a log of the requests received
   (`RecordedRequest`); documented on a new "Testing" API page
+- `transport` keyword on `LiquipediaClient`: an optional `httpx` transport for the underlying HTTP client (proxies,
+  mounts, or serving requests in memory as `FakeLpdb` does)
 
 ### Changed
 

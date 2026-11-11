@@ -97,6 +97,7 @@ client = LiquipediaClient(
     timeout=30.0,  # per-request timeout (seconds)
     max_retries=3,  # retries on HTTP 429 or timeout before raising RateLimitError / NetworkError
     retry_backoff_factor=1.0,  # base for exponential backoff between retries
+    transport=None,  # optional custom httpx transport (proxies, mounts...)
 )
 ```
 

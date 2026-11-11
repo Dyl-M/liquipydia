@@ -76,6 +76,8 @@ class LiquipediaClient:
         timeout: Request timeout in seconds.
         max_retries: Maximum number of retries on HTTP 429 responses and request timeouts.
         retry_backoff_factor: Base factor for exponential backoff on retries.
+        transport: Custom ``httpx`` transport for the underlying HTTP client (advanced: proxies, mounts, or serving
+            requests in memory as :class:`liquipydia.testing.FakeLpdb` does). ``None`` uses httpx's default.
 
     Examples:
         >>> with LiquipediaClient("my-app", api_key="secret") as client:
@@ -109,6 +111,7 @@ class LiquipediaClient:
         timeout: float = 30.0,
         max_retries: int = 3,
         retry_backoff_factor: float = 1.0,
+        transport: httpx.BaseTransport | None = None,
     ) -> None:
         self._max_retries = max_retries
         self._retry_backoff_factor = retry_backoff_factor
@@ -123,7 +126,7 @@ class LiquipediaClient:
         if resolved_key:
             headers["Authorization"] = f"Apikey {resolved_key}"
 
-        self._http = httpx.Client(base_url=_BASE_URL, headers=headers, timeout=timeout)
+        self._http = httpx.Client(base_url=_BASE_URL, headers=headers, timeout=timeout, transport=transport)
 
         # --- Resources ---
         self.broadcasters = BroadcastersResource(self)

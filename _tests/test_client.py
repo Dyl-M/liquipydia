@@ -60,6 +60,20 @@ def test_request_header(client_kwargs: dict[str, object], header: str, pattern: 
     assert re.fullmatch(pattern, respx.calls.last.request.headers[header])
 
 
+def test_custom_transport_serves_requests() -> None:
+    """Verify a transport passed to the constructor carries the client's requests."""
+    paths: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        paths.append(request.url.path)
+        return httpx.Response(200, json={"result": [{"id": 1}]})
+
+    with make_client(transport=httpx.MockTransport(handler)) as client:
+        assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
+
+    assert paths == ["/api/v3/player"]
+
+
 class TestConstructor:
     """Tests for LiquipediaClient API key resolution."""
 
