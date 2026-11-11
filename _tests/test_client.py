@@ -215,7 +215,7 @@ def test_429_retries(
     exhausted = responses[-1].status_code == 429
     outcome: AbstractContextManager[object] = pytest.raises(RateLimitError) if exhausted else nullcontext()
 
-    with make_client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client, outcome:
+    with outcome, make_client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client:
         assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
 
     assert sleeps == expected_sleeps
