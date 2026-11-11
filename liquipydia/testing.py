@@ -188,7 +188,7 @@ class FakeLpdb:
     def _handle(self, request: httpx.Request) -> httpx.Response:
         """Answer one request from the client: a simulated failure, or the endpoint's records."""
         endpoint = request.url.path.removeprefix(_API_PREFIX)
-        params = dict(request.url.params)
+        params: dict[str, str] = {key: value for key, value in request.url.params.items()}
         self._requests.append(RecordedRequest(endpoint, params))
 
         failure = self._take_failure(endpoint)
@@ -199,10 +199,12 @@ class FakeLpdb:
 
         records = self._records.get(endpoint, [])
         if "limit" in params:  # standard endpoints always send limit and offset; team template ones neither
-            offset = int(params.get("offset", 0))
-            records = records[offset : offset + int(params["limit"])]
-        if params.get("query"):
-            records = [_project(record, params["query"]) for record in records]
+            start = int(params.get("offset", "0"))
+            end = start + int(params["limit"])
+            records = records[start:end]
+        query = params.get("query")
+        if query:
+            records = [_project(record, query) for record in records]
         return httpx.Response(200, json={"result": records})
 
 
