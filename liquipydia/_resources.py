@@ -35,6 +35,21 @@ if TYPE_CHECKING:
     from liquipydia._response import ApiResponse
 
 
+# === Helpers ===
+
+
+def _build_params(raw: dict[str, Any]) -> dict[str, Any]:
+    """Build a query parameter dict, excluding ``None`` values.
+
+    Args:
+        raw: Raw parameter mapping (may contain ``None`` values).
+
+    Returns:
+        Filtered parameter dict.
+    """
+    return {k: v for k, v in raw.items() if v is not None}
+
+
 # === Base Resource ===
 
 
@@ -89,7 +104,7 @@ class Resource:
         """
         valid_fields = frozenset(self._model.model_fields)
         merged = self._build_conditions(conditions, filters, valid_fields)
-        params = self._build_params(
+        params = _build_params(
             {
                 "wiki": wiki,
                 "conditions": merged,
@@ -140,7 +155,7 @@ class Resource:
         """
         valid_fields = frozenset(self._model.model_fields)
         merged = self._build_conditions(conditions, filters, valid_fields)
-        params = self._build_params(
+        params = _build_params(
             {
                 "wiki": wiki,
                 "conditions": merged,
@@ -194,18 +209,6 @@ class Resource:
                 raise ValueError(f"Unknown filter key {key!r} for this resource. Valid keys: {sorted(valid_fields)}")
             parts.append(f"[[{key}::{value}]]")
         return " AND ".join(parts) if parts else None
-
-    @staticmethod
-    def _build_params(raw: dict[str, Any]) -> dict[str, Any]:
-        """Build a query parameter dict, excluding ``None`` values.
-
-        Args:
-            raw: Raw parameter mapping (may contain ``None`` values).
-
-        Returns:
-            Filtered parameter dict.
-        """
-        return {k: v for k, v in raw.items() if v is not None}
 
 
 # === Standard Resources ===
@@ -346,10 +349,7 @@ class TeamTemplateResource:
         Returns:
             Parsed API response.
         """
-        params: dict[str, Any] = {"wiki": wiki, "template": template}
-        if date is not None:
-            params["date"] = date
-        return self._client.get("teamtemplate", params)
+        return self._client.get("teamtemplate", _build_params({"wiki": wiki, "template": template, "date": date}))
 
 
 class TeamTemplateListResource:
@@ -380,7 +380,4 @@ class TeamTemplateListResource:
         Returns:
             Parsed API response.
         """
-        params: dict[str, Any] = {"wiki": wiki}
-        if pagination is not None:
-            params["pagination"] = pagination
-        return self._client.get("teamtemplatelist", params)
+        return self._client.get("teamtemplatelist", _build_params({"wiki": wiki, "pagination": pagination}))
