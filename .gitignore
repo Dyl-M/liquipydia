@@ -216,6 +216,5 @@ CLAUDE.md
 # Sphinx build output
 _docs/sphinx/_build*/
 
-# Code quality reports (crapper, dryer, mutator) and their scratch directory
+# Code quality reports (crapper, dryer, mutator); their scratch directory `target/` is ignored above
 .metrics/
-target/

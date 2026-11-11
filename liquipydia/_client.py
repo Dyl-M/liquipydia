@@ -203,9 +203,10 @@ class LiquipediaClient:
             if response.status_code != 429:
                 return self._parse_response(response)
 
-            last_retry_after = self._get_retry_after(response)
+            retry_after = self._get_retry_after(response)
+            last_retry_after = retry_after
             if not is_last_attempt:
-                time.sleep(max(last_retry_after, self._backoff(attempt)))
+                time.sleep(max(retry_after, self._backoff(attempt)))
 
         raise RateLimitError("Rate limit exceeded after retries", retry_after=last_retry_after)
 
