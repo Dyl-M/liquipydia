@@ -7,7 +7,8 @@ HTTP API:
 
 - **Keyword filters** — kwargs like ``nationality="Denmark"`` are turned into
   ``[[nationality::Denmark]]`` and AND-joined with any explicit ``conditions`` string.
-- **Filter-key validation** — keys that don't match the resource's Pydantic model raise
+- **Filter-key and query-field validation** — filter keys and ``query`` fields that don't match
+  the resource's Pydantic model (or a ``query`` function LPDB doesn't support) raise
   ``ValueError`` before a request goes out.
 - **Pagination** — ``paginate()`` yields individual records, transparently fetching successive
   pages.

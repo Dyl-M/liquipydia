@@ -2,6 +2,8 @@
 
 # Standard library
 from collections.abc import Callable
+import datetime as dt
+from typing import Any
 
 # Third-party
 import httpx
@@ -31,6 +33,9 @@ from liquipydia import (
     TournamentsResource,
     TransfersResource,
 )
+
+# noinspection PyProtectedMember
+from liquipydia._resources import _is_date_type
 
 ResourceCall = Callable[[LiquipediaClient], object]
 
@@ -173,6 +178,49 @@ SENT_PARAMS_CASES = [
         {"pagination": "2"},
         id="teamtemplatelist-pagination",
     ),
+    # --- Query validation: accepted items, string sent unchanged ---
+    pytest.param(
+        "player",
+        lambda client: client.players.list("dota2", query="pagename, name"),
+        {"query": "pagename, name"},
+        id="query-spaces-sent-unchanged",
+    ),
+    pytest.param(
+        "placement",
+        lambda client: client.placements.list("dota2", query="tournament,sum::prizemoney"),
+        {"query": "tournament,sum::prizemoney"},
+        id="query-function",
+    ),
+    pytest.param(
+        "placement",
+        lambda client: client.placements.list("dota2", query="SUM::prizemoney"),
+        {"query": "SUM::prizemoney"},
+        id="query-function-uppercase",
+    ),
+    pytest.param(
+        "player",
+        lambda client: list(client.players.paginate("dota2", query="pagename,month::birthdate")),
+        {"query": "pagename,month::birthdate"},
+        id="query-paginate",
+    ),
+    pytest.param(
+        "placement",
+        lambda client: client.placements.list("dota2", query="PrizeMoney"),
+        {"query": "PrizeMoney"},
+        id="query-field-mixed-case",
+    ),
+    pytest.param(
+        "match",
+        lambda client: client.matches.list("dota2", query="year::date"),
+        {"query": "year::date"},
+        id="query-date-function-on-datetime",
+    ),
+    pytest.param(
+        "player",
+        lambda client: client.players.list("dota2", query=""),
+        {"query": None},
+        id="query-empty-not-checked",
+    ),
 ]
 
 
@@ -190,38 +238,112 @@ def test_sent_params(endpoint: str, call: ResourceCall, expected: dict[str, str 
     assert {key: params.get(key) for key in expected} == expected
 
 
-# === Filter Key Validation ===
+# === Client-Side Validation (filter keys and query items) ===
 
 
 @respx.mock
 @pytest.mark.parametrize(
     ("call", "message"),
     [
+        # --- Filter keys ---
         pytest.param(
             lambda client: client.players.list("rocketleague", **{"bad key!": "value"}),
             "Invalid filter key",
-            id="list-invalid-key",
+            id="filter-invalid-key",
         ),
         pytest.param(
             lambda client: client.players.list("rocketleague", fakefield="value"),
             "Unknown filter key 'fakefield'",
-            id="list-unknown-key",
+            id="filter-unknown-key",
         ),
         pytest.param(
             lambda client: list(client.players.paginate("rocketleague", fakefield="value")),
             "Unknown filter key 'fakefield'",
-            id="paginate-unknown-key",
+            id="filter-paginate-unknown-key",
+        ),
+        # --- Query items ---
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="pagename,notafield"),
+            "Unknown query field 'notafield' for this resource",
+            id="query-unknown-field",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="sum::notafield"),
+            "Unknown query field 'notafield'",
+            id="query-function-unknown-field",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="summ::earnings"),
+            "Unknown query function 'summ' in 'summ::earnings'",
+            id="query-unknown-function",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="::earnings"),
+            "Unknown query function ''",
+            id="query-empty-function",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="pagename,,name"),
+            "Empty field in query",
+            id="query-empty-item",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="pagename, "),
+            "Empty field in query",
+            id="query-trailing-separator",
+        ),
+        pytest.param(
+            lambda client: list(client.players.paginate("rocketleague", query="notafield")),
+            "Unknown query field 'notafield'",
+            id="query-paginate-unknown-field",
+        ),
+        pytest.param(
+            lambda client: client.placements.list("rocketleague", query="birthdate"),
+            "Unknown query field 'birthdate'",
+            id="query-field-of-another-resource",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="year::earnings"),
+            "Date function 'year' in 'year::earnings' needs a date field",
+            id="query-date-function-on-number",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="sum :: earnings"),
+            "Unknown query function 'sum '",
+            id="query-spaces-around-separator",
+        ),
+        pytest.param(
+            lambda client: client.players.list("rocketleague", query="sum::sum::earnings"),
+            "Unknown query function 'sum::sum'",
+            id="query-multiple-separators",
         ),
     ],
 )
-def test_rejects_filter_key(call: ResourceCall, message: str) -> None:
-    """Verify invalid or unknown filter keys raise ValueError before any request is sent."""
+def test_rejects_invalid_input(call: ResourceCall, message: str) -> None:
+    """Verify invalid filter keys and query items raise ValueError before any request is sent."""
     route = respx.get(f"{BASE_URL}player").mock(return_value=httpx.Response(200, json={"result": []}))
 
     with make_client() as client, pytest.raises(ValueError, match=message):
         call(client)
 
     assert not route.called
+
+
+@pytest.mark.parametrize(
+    ("annotation", "expected"),
+    [
+        pytest.param(dt.date, True, id="date"),
+        pytest.param(dt.datetime, True, id="datetime"),
+        pytest.param(dt.date | None, True, id="optional-date"),
+        pytest.param(dt.datetime | None, True, id="optional-datetime"),
+        pytest.param(int | None, False, id="optional-int"),
+        pytest.param(str, False, id="str"),
+        pytest.param(dict[str, Any] | None, False, id="optional-generic"),
+    ],
+)
+def test_is_date_type(annotation: object, expected: bool) -> None:
+    """Verify which model field annotations count as dates for the query date functions."""
+    assert _is_date_type(annotation) is expected
 
 
 # === Responses ===

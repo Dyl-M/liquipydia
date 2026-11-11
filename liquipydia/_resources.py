@@ -3,8 +3,9 @@
 # Standard library
 from __future__ import annotations
 
+import datetime as dt
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, get_args
 
 # Local
 from liquipydia._models import (
@@ -35,6 +36,15 @@ if TYPE_CHECKING:
     from liquipydia._response import ApiResponse
 
 
+# === Constants ===
+
+# Functions LPDB accepts in a ``query`` item as ``function::field``; the result field is named ``function_field``.
+# Aggregates apply to numerical columns, date extractors to date columns only (LPDB answers 404 otherwise).
+_AGGREGATE_FUNCTIONS: frozenset[str] = frozenset({"count", "sum", "avg", "max", "min"})
+_DATE_FUNCTIONS: frozenset[str] = frozenset({"year", "month", "day", "hour", "minute", "second"})
+_QUERY_FUNCTIONS: frozenset[str] = _AGGREGATE_FUNCTIONS | _DATE_FUNCTIONS
+
+
 # === Helpers ===
 
 
@@ -48,6 +58,47 @@ def _build_params(raw: dict[str, Any]) -> dict[str, Any]:
         Filtered parameter dict.
     """
     return {k: v for k, v in raw.items() if v is not None}
+
+
+def _is_date_type(annotation: object) -> bool:
+    """Whether a model field annotation is a date or datetime, optional or not (e.g. ``dt.date | None``).
+
+    Args:
+        annotation: The field annotation, as stored by pydantic in ``FieldInfo.annotation``.
+
+    Returns:
+        True when the annotation, or one member of its union, is ``datetime.date`` or a subclass of it.
+    """
+    members = get_args(annotation) or (annotation,)
+    return any(isinstance(member, type) and issubclass(member, dt.date) for member in members)
+
+
+def _check_query_item(item: str, fields: frozenset[str], date_fields: frozenset[str]) -> None:
+    """Check one stripped ``query`` item (``field`` or ``function::field``) against a model's fields.
+
+    Args:
+        item: The item, stripped of surrounding whitespace.
+        fields: Field names of the resource's model (lowercase).
+        date_fields: The subset of ``fields`` typed as dates or datetimes.
+
+    Raises:
+        ValueError: If the item is empty, uses an unknown function, names an unknown field, or applies a date function
+            to a non-date field.
+    """
+    if not item:
+        raise ValueError("Empty field in query (check for doubled or trailing commas)")
+    function, separator, field = item.rpartition("::")
+    function_key, field_key = function.lower(), field.lower()
+    if separator and function_key not in _QUERY_FUNCTIONS:
+        raise ValueError(
+            f"Unknown query function {function!r} in {item!r}. Valid functions: {sorted(_QUERY_FUNCTIONS)}"
+        )
+    if field_key not in fields:
+        raise ValueError(f"Unknown query field {field!r} for this resource. Valid fields: {sorted(fields)}")
+    if function_key in _DATE_FUNCTIONS and field_key not in date_fields:
+        raise ValueError(
+            f"Date function {function!r} in {item!r} needs a date field. Date fields: {sorted(date_fields)}"
+        )
 
 
 # === Base Resource ===
@@ -89,7 +140,8 @@ class Resource:
         Args:
             wiki: Wiki(s) to query (pipe-separate for multi-wiki, e.g. ``"dota2|counterstrike"``).
             conditions: Filter expression using LPDB condition syntax.
-            query: Comma-separated list of fields to return.
+            query: Comma-separated list of fields to return, each optionally wrapped in a function
+                (e.g. ``"name,sum::earnings"``). Validated against the resource's model fields.
             limit: Maximum number of results (1--1000).
             offset: Number of results to skip.
             order: SQL-style ordering (e.g. ``"id ASC"``).
@@ -101,8 +153,12 @@ class Resource:
 
         Returns:
             Parsed API response.
+
+        Raises:
+            ValueError: If a filter key or a ``query`` item is not valid for this resource (checked before any request).
         """
         valid_fields = frozenset(self._model.model_fields)
+        self._validate_query(query)
         merged = self._build_conditions(conditions, filters, valid_fields)
         params = _build_params(
             {
@@ -140,7 +196,8 @@ class Resource:
         Args:
             wiki: Wiki(s) to query.
             conditions: Filter expression using LPDB condition syntax.
-            query: Comma-separated list of fields to return.
+            query: Comma-separated list of fields to return, each optionally wrapped in a function
+                (e.g. ``"name,sum::earnings"``). Validated against the resource's model fields.
             order: SQL-style ordering.
             groupby: SQL-style grouping.
             rawstreams: Return raw stream data (``/match`` endpoint only).
@@ -152,8 +209,12 @@ class Resource:
 
         Yields:
             Individual record dicts from the API.
+
+        Raises:
+            ValueError: If a filter key or a ``query`` item is not valid for this resource (checked before any request).
         """
         valid_fields = frozenset(self._model.model_fields)
+        self._validate_query(query)
         merged = self._build_conditions(conditions, filters, valid_fields)
         params = _build_params(
             {
@@ -209,6 +270,29 @@ class Resource:
                 raise ValueError(f"Unknown filter key {key!r} for this resource. Valid keys: {sorted(valid_fields)}")
             parts.append(f"[[{key}::{value}]]")
         return " AND ".join(parts) if parts else None
+
+    @classmethod
+    def _validate_query(cls, query: str | None) -> None:
+        """Check every item of a ``query`` string against the resource's model before it is sent.
+
+        Items are comma-separated and stripped of surrounding whitespace for the check only (the string is sent
+        unchanged). Each item is a model field, optionally prefixed by an LPDB function (``sum::prizemoney``). Field
+        and function names are case-insensitive, as in LPDB. Without this check, LPDB answers an invalid item with
+        HTTP 404, raised as a misleading ``NotFoundError``.
+
+        Args:
+            query: The ``query`` parameter; ``None`` or empty means all fields, with nothing to check.
+
+        Raises:
+            ValueError: If an item is empty, uses an unknown function, names a field the model does not have, or
+                applies a date function to a non-date field.
+        """
+        if not query:
+            return
+        fields = cls._model.model_fields
+        date_fields = frozenset(name for name, info in fields.items() if _is_date_type(info.annotation))
+        for part in query.split(","):
+            _check_query_item(part.strip(), frozenset(fields), date_fields)
 
 
 # === Standard Resources ===
