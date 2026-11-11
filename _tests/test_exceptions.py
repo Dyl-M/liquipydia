@@ -1,6 +1,10 @@
 """Tests for the liquipydia exception hierarchy."""
 
-from liquipydia import ApiError, AuthError, LiquipediaError, NotFoundError, RateLimitError
+# Third-party
+import pytest
+
+# Local
+from liquipydia import ApiError, AuthError, LiquipediaError, NetworkError, NotFoundError, RateLimitError
 
 
 def test_liquipedia_error_is_exception() -> None:
@@ -15,19 +19,14 @@ def test_liquipedia_error_message() -> None:
     assert str(err) == "something went wrong"
 
 
-def test_auth_error_is_liquipedia_error() -> None:
-    """Verify that AuthError is a subclass of LiquipediaError."""
-    assert issubclass(AuthError, LiquipediaError)
-
-
-def test_not_found_error_is_liquipedia_error() -> None:
-    """Verify that NotFoundError is a subclass of LiquipediaError."""
-    assert issubclass(NotFoundError, LiquipediaError)
-
-
-def test_rate_limit_error_is_liquipedia_error() -> None:
-    """Verify that RateLimitError is a subclass of LiquipediaError."""
-    assert issubclass(RateLimitError, LiquipediaError)
+@pytest.mark.parametrize(
+    "error_cls",
+    [AuthError, NotFoundError, RateLimitError, ApiError, NetworkError],
+    ids=lambda cls: cls.__name__,
+)
+def test_is_liquipedia_error(error_cls: type[Exception]) -> None:
+    """Verify that every specific error is a subclass of LiquipediaError, so one except clause catches them all."""
+    assert issubclass(error_cls, LiquipediaError)
 
 
 def test_rate_limit_error_retry_after() -> None:
@@ -41,8 +40,3 @@ def test_rate_limit_error_retry_after_default() -> None:
     """Verify that RateLimitError defaults retry_after to None."""
     err = RateLimitError("too many requests")
     assert err.retry_after is None
-
-
-def test_api_error_is_liquipedia_error() -> None:
-    """Verify that ApiError is a subclass of LiquipediaError."""
-    assert issubclass(ApiError, LiquipediaError)

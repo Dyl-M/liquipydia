@@ -153,19 +153,32 @@ First PyPI release covering the full LPDB v3 surface.
   the v0.1.1 User-Agent regression so the first conda release shipped clean). Now installable with
   `conda install -c conda-forge liquipydia`; the feedstock auto-rebuilds on PyPI releases via `regro-cf-autotick-bot`
 
+## v0.2.0 — Maintained HTTP client, typed failures and testing support
+
+- [x] Switch the HTTP client from `httpx` to `httpx2` (`>=2.16,<3`), Pydantic's maintained fork (see the decision below)
+- [x] Wrap every network failure in `NetworkError` and retry timeouts with the 429 retry budget (#32)
+- [x] Validate `query` items client-side against the resource's model (fields, LPDB functions, date-only functions)
+- [x] `liquipydia.testing.FakeLpdb` in-memory LPDB for testing client code, and the `transport` keyword on
+  `LiquipediaClient`
+- [x] Test suite: mutation testing pass, parametrized tables, 100% branch coverage, `respx` replaced by mocking through
+  `transport`
+- [x] CI: workflow YAML linting, `CODEOWNERS`, no redundant runs on `dev`, live API tests off PRs
+- [x] Project banner (README, docs index) and social preview
+- [ ] conda-forge feedstock: replace `httpx >=0.28,<1` with `httpx2 >=2.16,<3` in the `run` requirements (manual, the
+  version bot does not change dependencies)
+
 ## Future / Out of scope for v1
 
-- Evaluate HTTP client dependency — `httpx` maintenance has stalled (last release: Nov 2024, no 0.28.2 despite merged
-  patches, issues/discussions disabled). The maintainer (Tom Christie / Encode) has a pattern of abandoning projects
-  (MkDocs, DRF, Starlette). Both Anthropic and OpenAI SDKs pin `httpx<1` anticipating breaking changes from a
-  potential 1.0 rewrite. Current usage in `_client.py` is minimal (sync `Client`, `Response`, `.get()`), making
-  migration straightforward. Candidates to watch:
-    - **httpxyz** — community fork of httpx (Mar 2026), drop-in replacement, stability-first philosophy, 2 maintainers.
-      Zero migration cost but very young project
-    - **niquests** — actively maintained `requests` successor with HTTP/2 and HTTP/3 support, good typing. Single
-      maintainer (bus factor). Would require rewriting `_client.py` against the `requests`-style API
-    - Decision should be made before async support work begins, as it heavily influences the async design
-- Async support (`AsyncLiquipediaClient` — depends on HTTP client evaluation above)
+- [x] HTTP client dependency — **decided (v0.2.0): switched from `httpx` to
+  [`httpx2`](https://github.com/pydantic/httpx2)**, Pydantic's maintained fork of httpx 0.28.1 (import rename only,
+  depends on `httpcore2`, OS trust store via `truststore` by default). Background: `httpx` maintenance had stalled (last
+  release Nov 2024). Candidates considered:
+    - **httpxyz** — community drop-in fork; archived on 2026-09-05, its README calling httpx2 the "blessed" fork and
+      upstreaming its fixes there. Its automatic `sys.modules["httpx"]` aliasing was also unsuitable for a library
+    - **niquests** — would have required rewriting `_client.py` against the `requests`-style API
+    - `respx` (the previous test mocking library) does not support httpx2; the test suite now mocks through the
+      client's public `transport=` keyword (`httpx2.MockTransport`)
+- Async support (`AsyncLiquipediaClient` — can build on `httpx2.AsyncClient`)
 - Query builder / fluent interface (`client.query("match").where(...).select(...)`) — evaluate after v1 based on usage
 - Response caching layer (local TTL cache)
 - CLI tool for quick queries

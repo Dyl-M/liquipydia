@@ -10,10 +10,17 @@ from types import TracebackType
 from typing import Any, Final, Self
 
 # Third-party
-import httpx
+import httpx2
 
 # Local
-from liquipydia._exceptions import ApiError, AuthError, LiquipediaError, NotFoundError, RateLimitError
+from liquipydia._exceptions import (
+    ApiError,
+    AuthError,
+    LiquipediaError,
+    NetworkError,
+    NotFoundError,
+    RateLimitError,
+)
 from liquipydia._resources import (
     BroadcastersResource,
     CompaniesResource,
@@ -67,8 +74,10 @@ class LiquipediaClient:
         app_name: Application name used in the User-Agent header.
         api_key: API key for authentication. Falls back to the LIQUIPEDIA_API_KEY environment variable.
         timeout: Request timeout in seconds.
-        max_retries: Maximum number of retries on HTTP 429 responses.
+        max_retries: Maximum number of retries on HTTP 429 responses and request timeouts.
         retry_backoff_factor: Base factor for exponential backoff on retries.
+        transport: Custom ``httpx2`` transport for the underlying HTTP client (advanced: proxies, mounts, or serving
+            requests in memory as :class:`liquipydia.testing.FakeLpdb` does). ``None`` uses httpx2's default.
 
     Examples:
         >>> with LiquipediaClient("my-app", api_key="secret") as client:
@@ -102,6 +111,7 @@ class LiquipediaClient:
         timeout: float = 30.0,
         max_retries: int = 3,
         retry_backoff_factor: float = 1.0,
+        transport: httpx2.BaseTransport | None = None,
     ) -> None:
         self._max_retries = max_retries
         self._retry_backoff_factor = retry_backoff_factor
@@ -116,7 +126,7 @@ class LiquipediaClient:
         if resolved_key:
             headers["Authorization"] = f"Apikey {resolved_key}"
 
-        self._http = httpx.Client(base_url=_BASE_URL, headers=headers, timeout=timeout)
+        self._http = httpx2.Client(base_url=_BASE_URL, headers=headers, timeout=timeout, transport=transport)
 
         # --- Resources ---
         self.broadcasters = BroadcastersResource(self)
@@ -160,6 +170,8 @@ class LiquipediaClient:
     def get(self, endpoint: str, params: dict[str, Any]) -> ApiResponse:
         """Send a GET request to the API and return the parsed response.
 
+        Timeouts and HTTP 429 responses share the same retry budget (``max_retries``) and exponential backoff.
+
         Args:
             endpoint: API path segment (e.g. ``"player"``).
             params: Query parameters to include in the request.
@@ -171,33 +183,53 @@ class LiquipediaClient:
             AuthError: If the API key is invalid or missing (HTTP 403).
             NotFoundError: If the requested data does not exist (HTTP 404).
             RateLimitError: If retries are exhausted after HTTP 429 responses.
+            NetworkError: If the request times out on every attempt, or fails with any other network error
+                (connection, protocol) on its first occurrence.
             ApiError: If the API returns an error in the response body.
             LiquipediaError: For other unexpected HTTP errors.
         """
         last_retry_after: int | None = None
 
         for attempt in range(self._max_retries + 1):
-            response = self._http.get(endpoint, params=params)
+            is_last_attempt = attempt == self._max_retries
+
+            try:
+                response = self._http.get(endpoint, params=params)
+            except httpx2.TimeoutException as exc:
+                if is_last_attempt:
+                    raise NetworkError(f"Request timed out after {attempt + 1} attempt(s): {exc}") from exc
+                time.sleep(self._backoff(attempt))
+                continue
+            except httpx2.RequestError as exc:
+                raise NetworkError(f"Request failed: {exc}") from exc
 
             if response.status_code != 429:
                 return self._parse_response(response)
 
             retry_after = self._get_retry_after(response)
             last_retry_after = retry_after
-            backoff = min(self._retry_backoff_factor * (2**attempt), _MAX_BACKOFF)
-            sleep_duration: float = max(retry_after, backoff) if retry_after > 0 else backoff
-
-            if attempt < self._max_retries:
-                time.sleep(sleep_duration)
+            if not is_last_attempt:
+                time.sleep(max(retry_after, self._backoff(attempt)))
 
         raise RateLimitError("Rate limit exceeded after retries", retry_after=last_retry_after)
 
+    def _backoff(self, attempt: int) -> float:
+        """Return the exponential backoff before the retry following ``attempt``, capped at ``_MAX_BACKOFF``.
+
+        Args:
+            attempt: Zero-based index of the attempt that just failed.
+
+        Returns:
+            Wait time in seconds.
+        """
+        return min(self._retry_backoff_factor * (2.0**attempt), _MAX_BACKOFF)
+
     @staticmethod
-    def _parse_response(response: httpx.Response) -> ApiResponse:
+    def _parse_response(response: httpx2.Response) -> ApiResponse:
         """Parse an HTTP response into an ApiResponse.
 
         Args:
-            response: The raw httpx response.
+            response: The raw httpx2 response.
 
         Returns:
             Parsed API response.
@@ -286,7 +318,7 @@ class LiquipediaClient:
     # --- Helpers ---
 
     @staticmethod
-    def _get_retry_after(response: httpx.Response) -> int:
+    def _get_retry_after(response: httpx2.Response) -> int:
         """Extract the Retry-After header value from a response.
 
         Args:
