@@ -3,7 +3,7 @@ Client
 
 The main entry point for interacting with the Liquipedia API.
 
-A ``LiquipediaClient`` instance owns a single ``httpx`` session and exposes one resource attribute
+A ``LiquipediaClient`` instance owns a single ``httpx2`` session and exposes one resource attribute
 per LPDB v3 data type (e.g. ``client.players``, ``client.matches``). See :doc:`resources` for the
 full list and per-resource details.
 

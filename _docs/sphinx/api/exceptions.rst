@@ -18,7 +18,7 @@ Hierarchy
    └── NetworkError             # no response: timeout (retries exhausted), connection or protocol error
 
 :class:`~liquipydia.NetworkError` wraps the underlying HTTP client exception, which stays available
-as ``__cause__``, so no ``httpx`` exception escapes the client. Other failures (non-2xx responses
+as ``__cause__``, so no ``httpx2`` exception escapes the client. Other failures (non-2xx responses
 without a dedicated subclass, malformed JSON, unexpected response shapes) are raised as the bare
 :class:`~liquipydia.LiquipediaError`.
 

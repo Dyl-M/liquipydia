@@ -336,7 +336,7 @@ with LiquipediaClient("my-app", api_key="your-api-key") as client:
     except ApiError as exc:
         print(f"API returned an error: {exc.message}")
     except NetworkError as exc:
-        print(f"No response from the API: {exc.message}")  # exc.__cause__ is the httpx error
+        print(f"No response from the API: {exc.message}")  # exc.__cause__ is the httpx2 error
     except LiquipediaError as exc:
         print(f"Other library error: {exc.message}")
 ```
