@@ -95,14 +95,15 @@ client = LiquipediaClient(
     "my-app",
     api_key="your-api-key",
     timeout=30.0,  # per-request timeout (seconds)
-    max_retries=3,  # retries on HTTP 429 before raising RateLimitError
+    max_retries=3,  # retries on HTTP 429 or timeout before raising RateLimitError / NetworkError
     retry_backoff_factor=1.0,  # base for exponential backoff between retries
 )
 ```
 
 The retry loop honours the API's `Retry-After` header when present and otherwise uses exponential
-backoff capped at 60 seconds. Set `max_retries=0` to disable automatic retrying and let your code
-handle `RateLimitError` directly.
+backoff capped at 60 seconds. Timeouts are retried the same way, from the same `max_retries`
+budget. Set `max_retries=0` to disable automatic retrying and let your code handle
+`RateLimitError` and `NetworkError` directly.
 
 ## Available resources
 

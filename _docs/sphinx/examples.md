@@ -306,6 +306,7 @@ from liquipydia import (
     NotFoundError,
     RateLimitError,
     ApiError,
+    NetworkError,
     LiquipediaError,
 )
 
@@ -323,10 +324,13 @@ with LiquipediaClient("my-app", api_key="your-api-key") as client:
             print("Rate limited — no Retry-After hint provided")
     except ApiError as exc:
         print(f"API returned an error: {exc.message}")
+    except NetworkError as exc:
+        print(f"No response from the API: {exc.message}")  # exc.__cause__ is the httpx error
     except LiquipediaError as exc:
         print(f"Other library error: {exc.message}")
 ```
 
-The client retries `429` responses with exponential backoff up to `max_retries` times before
-raising `RateLimitError`. If you need to handle rate limits explicitly without retries, set
-`max_retries=0` on construction.
+The client retries `429` responses and request timeouts with exponential backoff, sharing one
+budget of `max_retries` retries, before raising `RateLimitError` or `NetworkError`. Other network
+failures (refused connection, protocol error) raise `NetworkError` immediately. If you need to
+handle these explicitly without retries, set `max_retries=0` on construction.

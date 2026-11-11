@@ -16,6 +16,7 @@ from liquipydia import (
     AuthError,
     LiquipediaClient,
     LiquipediaError,
+    NetworkError,
     NotFoundError,
     RateLimitError,
     __version__,
@@ -175,7 +176,7 @@ def test_error_mapping(response: httpx.Response, error: type[LiquipediaError], m
         client.get("player", {"wiki": "dota2"})
 
 
-# === Rate Limiting ===
+# === Retries (HTTP 429 and timeouts) ===
 
 
 def _rate_limited(retry_after: str | None = None) -> httpx.Response:
@@ -188,38 +189,98 @@ def _ok() -> httpx.Response:
     return httpx.Response(200, json={"result": [{"id": 1}]})
 
 
+def _timeout() -> httpx.ReadTimeout:
+    """Build the timeout raised when the server does not answer in time."""
+    return httpx.ReadTimeout("The read operation timed out")
+
+
+def _expected_outcome(last: httpx.Response | Exception) -> AbstractContextManager[object]:
+    """Return what the final attempt should lead to: a retry-exhausted error, or a successful call."""
+    if isinstance(last, httpx.TimeoutException):
+        return pytest.raises(NetworkError, match="timed out")
+    if isinstance(last, httpx.Response) and last.status_code == 429:
+        return pytest.raises(RateLimitError)
+    return nullcontext()
+
+
 @respx.mock
 @pytest.mark.parametrize(
     ("responses", "max_retries", "backoff_factor", "expected_sleeps"),
     [
-        pytest.param([_rate_limited("0"), _ok()], 3, 0.0, [0.0], id="succeeds-after-retry"),
-        pytest.param([_rate_limited("0") for _ in range(3)], 2, 0.0, [0.0, 0.0], id="exhausts-retries"),
-        pytest.param([_rate_limited("not-a-number"), _ok()], 3, 0.0, [0.0], id="non-numeric-retry-after"),
-        pytest.param([_rate_limited() for _ in range(4)], 3, 1.0, [1.0, 2.0, 4.0], id="backoff-doubles-no-final-sleep"),
-        pytest.param([_rate_limited("5"), _ok()], 1, 1.0, [5], id="retry-after-wins-over-backoff"),
+        # --- HTTP 429 ---
+        pytest.param([_rate_limited("0"), _ok()], 3, 0.0, [0.0], id="429-succeeds-after-retry"),
+        pytest.param([_rate_limited("0") for _ in range(3)], 2, 0.0, [0.0, 0.0], id="429-exhausts-retries"),
+        pytest.param([_rate_limited("not-a-number"), _ok()], 3, 0.0, [0.0], id="429-non-numeric-retry-after"),
+        pytest.param([_rate_limited() for _ in range(4)], 3, 1.0, [1.0, 2.0, 4.0], id="429-backoff-doubles"),
+        pytest.param([_rate_limited("5"), _ok()], 1, 1.0, [5], id="429-retry-after-wins-over-backoff"),
+        # --- Timeouts ---
+        pytest.param([_timeout(), _ok()], 3, 1.0, [1.0], id="timeout-succeeds-after-retry"),
+        pytest.param([_timeout() for _ in range(3)], 2, 1.0, [1.0, 2.0], id="timeout-exhausts-retries"),
+        pytest.param([_timeout()], 0, 1.0, [], id="timeout-no-retries"),
+        # --- Mixed: both share one retry budget ---
+        pytest.param([_timeout(), _rate_limited("0"), _ok()], 2, 1.0, [1.0, 2.0], id="timeout-then-429-then-ok"),
+        pytest.param([_rate_limited("0"), _timeout()], 1, 1.0, [1.0], id="429-then-timeout-exhausts"),
     ],
 )
-def test_429_retries(
+def test_retries(
     sleeps: list[float],
-    responses: list[httpx.Response],
+    responses: list[httpx.Response | Exception],
     max_retries: int,
     backoff_factor: float,
     expected_sleeps: list[float],
 ) -> None:
     """Verify the retry loop: one request per attempt, the waits between them, and the final outcome.
 
-    When the last response is still a 429, the retries are exhausted and RateLimitError is expected.
+    A last 429 means RateLimitError and a last timeout means NetworkError (retries exhausted); anything else succeeds.
     """
     route = respx.get(f"{BASE_URL}player")
     route.side_effect = responses
-    exhausted = responses[-1].status_code == 429
-    outcome: AbstractContextManager[object] = pytest.raises(RateLimitError) if exhausted else nullcontext()
 
-    with outcome, make_client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client:
+    with (
+        _expected_outcome(responses[-1]),
+        make_client(max_retries=max_retries, retry_backoff_factor=backoff_factor) as client,
+    ):
         assert client.get("player", {"wiki": "dota2"}).result == [{"id": 1}]
 
     assert sleeps == expected_sleeps
     assert route.call_count == len(responses)
+
+
+@respx.mock
+@pytest.mark.parametrize(
+    "error",
+    [
+        pytest.param(httpx.ConnectError("Connection refused"), id="connect-error"),
+        pytest.param(httpx.RemoteProtocolError("Server disconnected without sending a response"), id="protocol-error"),
+        pytest.param(httpx.TooManyRedirects("Exceeded maximum allowed redirects"), id="too-many-redirects"),
+    ],
+)
+def test_network_error_not_retried(sleeps: list[float], error: httpx.RequestError) -> None:
+    """Verify non-timeout request failures raise NetworkError at once, chained to the original httpx error."""
+    route = respx.get(f"{BASE_URL}player")
+    route.side_effect = error
+
+    with make_client(max_retries=3) as client, pytest.raises(NetworkError, match="Request failed") as exc_info:
+        client.get("player", {"wiki": "dota2"})
+
+    assert exc_info.value.__cause__ is error
+    assert isinstance(exc_info.value, LiquipediaError)
+    assert route.call_count == 1
+    assert sleeps == []
+
+
+@respx.mock
+def test_timeout_error_message_and_cause(sleeps: list[float]) -> None:
+    """Verify an exhausted timeout reports the number of attempts and keeps the original httpx exception as cause."""
+    error = _timeout()
+    respx.get(f"{BASE_URL}player").side_effect = error
+
+    with make_client(max_retries=1, retry_backoff_factor=0.0) as client, pytest.raises(NetworkError) as exc_info:
+        client.get("player", {"wiki": "dota2"})
+
+    assert exc_info.value.message.startswith("Request timed out after 2 attempt(s): ")
+    assert exc_info.value.__cause__ is error
+    assert sleeps == [0.0]
 
 
 @respx.mock

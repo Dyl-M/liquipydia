@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   against the live LPDB API now run on pushes to `main`, a weekly schedule and manual dispatch instead of every PR
 - CI: CodeQL runs on PRs and pushes to `main` plus its monthly schedule only (no longer on `dev`), with
   `build-mode: none` replacing the `Autobuild` step
+- Request timeouts are now retried like HTTP 429 responses, sharing the same `max_retries` budget and exponential
+  backoff
+- `CONTRIBUTING.md`: topic branches use slash prefixes (`feat/*`, `fix/*`, `refactor/*`, `test/*`, `ci/*`,
+  `chore/*` from `dev`; `doc/*` from `docs`, singular because git cannot create `docs/...` branches next to the
+  `docs` branch) instead of the dash style (`feat-*`)
+
+### Fixed
+
+- Network failures no longer escape as raw `httpx` exceptions: timeouts (once retries are exhausted), connection and
+  protocol errors are raised as the new `NetworkError` (a `LiquipediaError` subclass, exported from `liquipydia`),
+  chained to the original `httpx` error, so `except LiquipediaError` covers every failed request (#32)
 
 ## [0.1.2] - 2026-05-04
 
