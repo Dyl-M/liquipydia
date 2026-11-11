@@ -23,7 +23,6 @@ import httpx
 
 # Local
 from liquipydia._client import LiquipediaClient
-from liquipydia._resources import Resource
 
 __all__ = ["FakeLpdb", "RecordedRequest"]
 
@@ -31,11 +30,28 @@ __all__ = ["FakeLpdb", "RecordedRequest"]
 
 _API_PREFIX = "/api/v3/"
 
-# Every endpoint the client can call: the 14 standard resources, plus the two team template endpoints.
-_ENDPOINTS: frozenset[str] = frozenset(cls._endpoint for cls in Resource.__subclasses__()) | {
-    "teamtemplate",
-    "teamtemplatelist",
-}
+# Every endpoint the client can call: the 14 standard resources, plus the two team template endpoints (kept in sync
+# with the resource classes by a unit test).
+_ENDPOINTS: frozenset[str] = frozenset(
+    {
+        "broadcasters",
+        "company",
+        "datapoint",
+        "externalmedialink",
+        "match",
+        "placement",
+        "player",
+        "series",
+        "squadplayer",
+        "standingsentry",
+        "standingstable",
+        "team",
+        "teamtemplate",
+        "teamtemplatelist",
+        "tournament",
+        "transfer",
+    }
+)
 
 
 # === Records ===
@@ -143,18 +159,13 @@ class FakeLpdb:
         Returns:
             The client; use it as a context manager.
         """
-        client = LiquipediaClient(
-            app_name, api_key="fake-api-key", max_retries=max_retries, retry_backoff_factor=retry_backoff_factor
-        )
-        real_http = client._http
-        client._http = httpx.Client(
-            base_url=real_http.base_url,
-            headers=real_http.headers,
-            timeout=real_http.timeout,
+        return LiquipediaClient(
+            app_name,
+            api_key="fake-api-key",
+            max_retries=max_retries,
+            retry_backoff_factor=retry_backoff_factor,
             transport=httpx.MockTransport(self._handle),
         )
-        real_http.close()
-        return client
 
     # --- Inspection ---
 

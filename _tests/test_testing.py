@@ -16,6 +16,8 @@ from liquipydia import (
     NetworkError,
     NotFoundError,
     RateLimitError,
+    Resource,
+    testing,
 )
 from liquipydia.testing import FakeLpdb, RecordedRequest
 
@@ -151,6 +153,16 @@ def test_fail_only_affects_its_endpoint() -> None:
 
     with fake.client() as client:
         assert client.players.list("dota2").result == [{"pagename": "A"}]
+
+
+# === Endpoint list ===
+
+
+def test_endpoint_list_matches_resources() -> None:
+    """Verify the fake's endpoint names equal the resources' endpoints plus the two team template endpoints."""
+    standard = {cls._endpoint for cls in Resource.__subclasses__()}
+
+    assert standard | {"teamtemplate", "teamtemplatelist"} == testing._ENDPOINTS
 
 
 # === Argument checks ===
