@@ -49,7 +49,7 @@ from liquipydia._resources import (  # skipcq: PY-W2000
 )
 from liquipydia._response import ApiResponse  # skipcq: PY-W2000
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 __author__ = "Dylan Monfret"
 
 __all__: list[str] = [
