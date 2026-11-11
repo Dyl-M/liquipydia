@@ -1,13 +1,17 @@
 liquipydia
 ==========
 
+.. image:: ../../.github/assets/banner.png
+   :alt: liquipydia: Python client library for the Liquipedia API (LPDB v3)
+   :width: 100%
+
 **A modern, typed Python client for the Liquipedia API (LPDB v3).**
 
 liquipydia is a Python client library for the `Liquipedia <https://liquipedia.net/>`_ Database
 (LPDB) REST API v3, covering all 16 data types (matches, tournaments, teams, players, transfers,
 and more).
 
-Built with `httpx <https://www.python-httpx.org/>`_ and `pydantic <https://docs.pydantic.dev/>`_.
+Built with `httpx2 <https://github.com/pydantic/httpx2>`_ and `pydantic <https://docs.pydantic.dev/>`_.
 
 Features
 --------
@@ -18,6 +22,7 @@ Features
 - **Keyword filters** — Pythonic query syntax instead of raw LPDB condition strings
 - **Rate limit handling** — automatic retries with exponential backoff on HTTP 429
 - **Context manager** — clean resource management with ``with`` statement
+- **Test helper** — ``liquipydia.testing.FakeLpdb`` serves canned records to a real client, no network or API key
 
 Quick example
 -------------
@@ -52,6 +57,7 @@ Quick example
    api/models
    api/response
    api/exceptions
+   api/testing
 
 .. toctree::
    :maxdepth: 1

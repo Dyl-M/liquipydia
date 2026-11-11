@@ -6,12 +6,14 @@ Tests are automatically skipped when no key is available.
 """
 
 # Standard library
+from collections.abc import Callable
 import json
 import os
 from pathlib import Path
 import time
 
 # Third-party
+from pydantic import BaseModel
 import pytest
 
 # Local
@@ -74,52 +76,31 @@ class TestIntegration:
         time.sleep(10)
 
     @staticmethod
-    def test_players_list() -> None:
-        """Standard resource list returns parseable results."""
+    @pytest.mark.parametrize(
+        ("call", "model_cls"),
+        [
+            pytest.param(lambda client: client.players.list(_WIKI, limit=5), Player, id="players"),
+            pytest.param(lambda client: client.tournaments.list(_WIKI, limit=5), Tournament, id="tournaments"),
+            pytest.param(lambda client: client.matches.list(_WIKI, limit=5), Match, id="matches"),
+            pytest.param(
+                lambda client: client.matches.list(_WIKI, limit=5, rawstreams=True, streamurls=True),
+                Match,
+                id="matches-with-streams",
+            ),
+        ],
+    )
+    def test_list_returns_parseable_records(
+        call: Callable[[LiquipediaClient], ApiResponse], model_cls: type[BaseModel]
+    ) -> None:
+        """Standard resource lists return non-empty results that parse into their model."""
         with _make_client() as client:
-            response = client.players.list(_WIKI, limit=5)
+            response = call(client)
 
         assert isinstance(response, ApiResponse)
         assert len(response.result) > 0
 
         for record in response.result:
-            Player.model_validate(record)
-
-    @staticmethod
-    def test_tournaments_list() -> None:
-        """Another standard resource returns parseable results."""
-        with _make_client() as client:
-            response = client.tournaments.list(_WIKI, limit=5)
-
-        assert isinstance(response, ApiResponse)
-        assert len(response.result) > 0
-
-        for record in response.result:
-            Tournament.model_validate(record)
-
-    @staticmethod
-    def test_matches_list() -> None:
-        """Match resource returns parseable results."""
-        with _make_client() as client:
-            response = client.matches.list(_WIKI, limit=5)
-
-        assert isinstance(response, ApiResponse)
-        assert len(response.result) > 0
-
-        for record in response.result:
-            Match.model_validate(record)
-
-    @staticmethod
-    def test_matches_with_streams() -> None:
-        """Match resource with rawstreams and streamurls parameters."""
-        with _make_client() as client:
-            response = client.matches.list(_WIKI, limit=5, rawstreams=True, streamurls=True)
-
-        assert isinstance(response, ApiResponse)
-        assert len(response.result) > 0
-
-        for record in response.result:
-            Match.model_validate(record)
+            model_cls.model_validate(record)
 
     @staticmethod
     def test_team_template_get() -> None:

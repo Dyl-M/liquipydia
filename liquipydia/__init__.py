@@ -6,6 +6,7 @@ from liquipydia._exceptions import (  # skipcq: PY-W2000
     ApiError,
     AuthError,
     LiquipediaError,
+    NetworkError,
     NotFoundError,
     RateLimitError,
 )
@@ -98,6 +99,7 @@ __all__: list[str] = [
     "ApiError",
     "AuthError",
     "LiquipediaError",
+    "NetworkError",
     "NotFoundError",
     "RateLimitError",
 ]

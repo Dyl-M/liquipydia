@@ -76,9 +76,9 @@ The same operator prefixes from the conditions syntax also work in values:
 # >, <, ! are passed through verbatim into the condition string
 response = client.tournaments.list(
     "dota2",
-    liquipediatier="1",         # equals
-    prizepool=">100000",        # greater than
-    type="!Online",             # not equals
+    liquipediatier="1",  # equals
+    prizepool=">100000",  # greater than
+    type="!Online",  # not equals
 )
 ```
 
@@ -115,6 +115,17 @@ for record in response.result:
 ```{tip}
 `query` also supports aggregate functions (`sum::prizemoney`, `count::id`) and date extractors
 (`year::birthdate`). The result field name becomes `sum_prizemoney`, `year_birthdate`, etc.
+```
+
+```{note}
+`query` items are validated before the request is sent, like keyword filter keys: each field must
+exist on the resource's Pydantic model, and a `function::` prefix must be one of `count`, `sum`,
+`avg`, `max`, `min`, `year`, `month`, `day`, `hour`, `minute`, `second`, with the date functions
+(`year` … `second`) applied to a date field only. Anything else raises `ValueError` listing the
+valid names. Without this check, LPDB answers an invalid item with HTTP 404, which would surface as
+a misleading `NotFoundError`. Field and function names are case-insensitive, as in LPDB. Spaces
+are tolerated around comma-separated items (`"pagename, name"`) but not around `::`, which LPDB
+rejects. The string is sent unchanged. JSON subkeys (`extradata_key`) work in `conditions` only.
 ```
 
 ### Ordering and grouping
@@ -306,6 +317,7 @@ from liquipydia import (
     NotFoundError,
     RateLimitError,
     ApiError,
+    NetworkError,
     LiquipediaError,
 )
 
@@ -323,10 +335,13 @@ with LiquipediaClient("my-app", api_key="your-api-key") as client:
             print("Rate limited — no Retry-After hint provided")
     except ApiError as exc:
         print(f"API returned an error: {exc.message}")
+    except NetworkError as exc:
+        print(f"No response from the API: {exc.message}")  # exc.__cause__ is the httpx2 error
     except LiquipediaError as exc:
         print(f"Other library error: {exc.message}")
 ```
 
-The client retries `429` responses with exponential backoff up to `max_retries` times before
-raising `RateLimitError`. If you need to handle rate limits explicitly without retries, set
-`max_retries=0` on construction.
+The client retries `429` responses and request timeouts with exponential backoff, sharing one
+budget of `max_retries` retries, before raising `RateLimitError` or `NetworkError`. Other network
+failures (refused connection, protocol error) raise `NetworkError` immediately. If you need to
+handle these explicitly without retries, set `max_retries=0` on construction.

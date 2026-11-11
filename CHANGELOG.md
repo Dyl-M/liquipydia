@@ -7,10 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-11
+
 ### Added
 
 - conda-forge package — `liquipydia` is now installable via `conda install -c conda-forge liquipydia`; install
   instructions added to the README and the Sphinx getting-started guide
+- `yamllint` step in the `Lint & Test` workflow (`.github/yamllint.yml`: syntax + duplicate keys only) to catch
+  workflow files GitHub Actions cannot parse
+- `.github/CODEOWNERS` requesting the owner's review on every pull request (replaces Dependabot's deprecated
+  `reviewers` option)
+- Client-side validation of `query` in `Resource.list()` / `paginate()`: every comma-separated item must be a field of
+  the resource's model (case-insensitive), optionally prefixed by a supported LPDB function (`count`, `sum`, `avg`,
+  `max`, `min`, or the date functions `year`, `month`, `day`, `hour`, `minute`, `second` on date fields only),
+  otherwise `ValueError` is raised before any request. Previously LPDB answered an invalid item with HTTP 404, surfaced
+  as a misleading `NotFoundError`
+- Getting-started guide: LPDB's `429` responses usually carry no `Retry-After`; after a `RateLimitError`, probe with a
+  single `max_retries=0` request rather than a tight retry loop
+- `liquipydia.testing` module: `FakeLpdb`, an in-memory LPDB serving canned records per endpoint to a real
+  `LiquipediaClient` (no network, no API key), with `limit` / `offset` paging, `query` field selection, simulated
+  failures (`fail()`: HTTP status or timeout, optionally for N requests) and a log of the requests received
+  (`RecordedRequest`); documented on a new "Testing" API page
+- `transport` keyword on `LiquipediaClient`: an optional `httpx2` transport for the underlying HTTP client (proxies,
+  mounts, or serving requests in memory as `FakeLpdb` does)
+- Project banner (`.github/assets/banner.png`) at the top of the README, replacing the plain title, and of the Sphinx
+  index page; a matching image is used as the repository's social preview
+
+### Changed
+
+- CI: `Lint & Test` no longer runs on pushes to `dev` (already covered by its required PR checks); integration tests
+  against the live LPDB API now run on pushes to `main`, a weekly schedule and manual dispatch instead of every PR
+- CI: CodeQL runs on PRs and pushes to `main` plus its monthly schedule only (no longer on `dev`), with
+  `build-mode: none` replacing the `Autobuild` step
+- Request timeouts are now retried like HTTP 429 responses, sharing the same `max_retries` budget and exponential
+  backoff
+- `CONTRIBUTING.md`: topic branches use slash prefixes (`feat/*`, `fix/*`, `refactor/*`, `test/*`, `ci/*`,
+  `chore/*` from `dev`; `doc/*` from `docs`, singular because git cannot create `docs/...` branches next to the
+  `docs` branch) instead of the dash style (`feat-*`)
+- HTTP client: the runtime dependency moves from `httpx` (`>=0.28,<1`, unmaintained since its last release in November
+  2024) to [`httpx2`](https://github.com/pydantic/httpx2) (`>=2.16,<3`), Pydantic's maintained fork of httpx 0.28.1,
+  which brings `httpcore2` instead of `httpcore`. Visible effects: `NetworkError.__cause__` is now an `httpx2`
+  exception, and TLS certificates are verified against the operating system's trust store (`truststore`) instead of
+  the `certifi` bundle by default
+- Tests: `respx` (which cannot mock httpx2) is replaced by a local helper mocking requests through the client's
+  `transport` keyword; the `test` dependency group no longer includes `respx`
+
+### Fixed
+
+- Network failures no longer escape as raw HTTP client exceptions: timeouts (once retries are exhausted), connection
+  and protocol errors are raised as the new `NetworkError` (a `LiquipediaError` subclass, exported from `liquipydia`),
+  chained to the original exception, so `except LiquipediaError` covers every failed request (#32)
 
 ## [0.1.2] - 2026-05-04
 
@@ -222,7 +268,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.gitattributes` with LF line ending normalization
 - `CHANGELOG.md` (this file)
 
-[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.1.2...dev
+[Unreleased]: https://github.com/Dyl-M/liquipydia/compare/v0.2.0...dev
+
+[0.2.0]: https://github.com/Dyl-M/liquipydia/compare/v0.1.2...v0.2.0
 
 [0.1.2]: https://github.com/Dyl-M/liquipydia/compare/v0.1.1...v0.1.2
 
