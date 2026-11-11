@@ -8,8 +8,8 @@ Thanks for your interest in contributing to **`liquipydia`**! Here are a few gui
 2. Create a new branch for your work. Branch from `dev` for code changes, or from `docs` for documentation-only changes:
 
    ```bash
-   git checkout -b feat-your-feature dev    # code changes
-   git checkout -b docs-your-update docs     # documentation-only changes
+   git checkout -b feat/your-feature dev    # code changes
+   git checkout -b doc/your-update docs      # documentation-only changes
    ```
 
 3. Install all development dependencies:
@@ -65,10 +65,10 @@ released code (keeping its autodoc-generated API reference fresh). If a back-mer
 without pushing — resolve it locally with `git checkout <branch> && git merge origin/main`.
 
 ```
-feat-xyz  ──► dev   ──► main
-fix-abc   ──►      (PR + merge)
+feat/xyz  ──► dev   ──► main
+fix/abc   ──►      (PR + merge)
 
-docs-xyz  ──► docs  ──► main
+doc/xyz   ──► docs  ──► main
               (PR + merge, skips dev)
 ```
 
@@ -103,11 +103,19 @@ Examples: `feat: add resource layer`, `fix: handle 429 rate limit`, `docs: updat
 
 ### Branch Naming
 
-Use descriptive prefixes:
+Use a descriptive prefix followed by a slash:
 
-- `feat-*` for new features (from `dev`)
-- `fix-*` for bug fixes (from `dev`)
-- `docs-*` for documentation changes (from `docs`)
+- `feat/*` for new features (from `dev`)
+- `fix/*` for bug fixes (from `dev`)
+- `refactor/*` for code restructuring without behavior change (from `dev`)
+- `test/*` for test-only changes (from `dev`)
+- `ci/*` for CI workflow changes (from `dev`)
+- `chore/*` for maintenance such as tooling or repository config (from `dev`)
+- `doc/*` for documentation changes (from `docs`)
+
+Prefixes match the [Conventional Commits](https://www.conventionalcommits.org/) types used in commit messages, except
+`doc/*` (singular): git cannot create `docs/...` branches while the long-lived `docs` branch exists, since a branch name
+cannot also be a folder of other branches.
 
 ## Pull Requests
 
