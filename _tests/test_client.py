@@ -65,6 +65,7 @@ def test_custom_transport_serves_requests() -> None:
     paths: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
+        """Record the requested path and answer with one record."""
         paths.append(request.url.path)
         return httpx.Response(200, json={"result": [{"id": 1}]})
 
