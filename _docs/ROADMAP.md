@@ -164,8 +164,8 @@ First PyPI release covering the full LPDB v3 surface.
   `transport`
 - [x] CI: workflow YAML linting, `CODEOWNERS`, no redundant runs on `dev`, live API tests off PRs
 - [x] Project banner (README, docs index) and social preview
-- [ ] conda-forge feedstock: replace `httpx >=0.28,<1` with `httpx2 >=2.16,<3` in the `run` requirements (manual, the
-  version bot does not change dependencies)
+- [x] conda-forge feedstock: replace `httpx >=0.28,<1` with `httpx2 >=2.16,<3` in the `run` requirements (manual, the
+  version bot does not change dependencies); done on the bot's 0.2.0 PR (`conda-forge/liquipydia-feedstock#1`)
 
 ## Future / Out of scope for v1
 
